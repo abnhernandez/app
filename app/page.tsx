@@ -1,4 +1,4 @@
-import { Image as LucideImage, Zap } from "lucide-react";
+import { Image as LucideImage, Navigation } from "lucide-react";
 import NotifyForm from "@/app/components/NotifyForm";
 
 export const metadata = {
@@ -43,7 +43,7 @@ export default function Home({ searchParams }: { searchParams?: Record<string, s
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Zap size={16} />
+            <Navigation size={16} />
             Asistir presencialmente
           </a>
 

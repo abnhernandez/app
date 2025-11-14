@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { Send, Zap } from "lucide-react";
 
 export default function NotifyForm() {
   const [email, setEmail] = useState("");
@@ -33,6 +33,7 @@ export default function NotifyForm() {
           onClick={() => setOpen(true)}
           className="flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-black/10 px-5 transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-[#1a1a1a]"
         >
+        <Zap size={16} />
           Avísenme cuando esté listo
         </button>
       ) : (
