@@ -11,13 +11,13 @@ export default function Home({ searchParams }: { searchParams?: Record<string, s
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+      <main className="flex w-full max-w-3xl flex-col items-center justify-between py-32 px-16 sm:items-start gap-8">
         
         {/* Logo */}
-        <LucideImage className="dark:invert" size={64} />
+        <LucideImage className="invert" size={64} />
 
         {/* Textos */}
-        <section className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+        <section className="flex flex-col items-center gap-8 text-center sm:items-start sm:text-left">
           <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
             Monte Sion Oaxaca
           </h1>
@@ -34,7 +34,7 @@ export default function Home({ searchParams }: { searchParams?: Record<string, s
         </section>
 
         {/* Botones */}
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+        <div className="flex flex-col gap-6 text-base font-medium sm:flex-row">
 
           {/* Botón mapa */}
           <a
