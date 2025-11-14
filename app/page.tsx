@@ -95,7 +95,7 @@ export default function Home({ searchParams }: { searchParams?: Record<string, s
           </a>
 
           <a
-            href="https://wa.me/529512091644?text=Hola%20quiero%20m%C3%A1s%20informaci%C3%B3n"
+            href="https://wa.me/529512091644?text=Hola.%20Necesito%20de%20Dios."
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp +52 951 209 1644"
