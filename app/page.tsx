@@ -1,4 +1,4 @@
-import { Image as LucideImage, Navigation } from "lucide-react";
+import { Image as LucideImage, Navigation, Youtube, Instagram, Facebook, MessageSquare } from "lucide-react";
 import NotifyForm from "@/app/components/NotifyForm";
 
 export const metadata = {
@@ -56,8 +56,52 @@ export default function Home({ searchParams }: { searchParams?: Record<string, s
             <NotifyForm />
           )}
         </div>
-
       </main>
+
+      {/* Footer con iconos sociales */}
+      <footer className="w-full border-t border-black/5 py-6">
+        <div className="mx-auto flex max-w-3xl items-center justify-center gap-6 px-16 sm:justify-start">
+          <a
+            href="https://www.youtube.com/@montesionoaxaca"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="YouTube @montesionoaxaca"
+            className="text-zinc-700 hover:text-zinc-900 dark:text-zinc-300"
+          >
+            <Youtube size={20} />
+          </a>
+
+          <a
+            href="https://www.instagram.com/montesionoaxaca"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram montesionoaxaca"
+            className="text-zinc-700 hover:text-zinc-900 dark:text-zinc-300"
+          >
+            <Instagram size={20} />
+          </a>
+
+          <a
+            href="https://www.facebook.com/montesionoax"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook montesionoax"
+            className="text-zinc-700 hover:text-zinc-900 dark:text-zinc-300"
+          >
+            <Facebook size={20} />
+          </a>
+
+          <a
+            href="https://wa.me/529512091644?text=Hola%20quiero%20m%C3%A1s%20informaci%C3%B3n"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp +52 951 209 1644"
+            className="text-zinc-700 hover:text-zinc-900 dark:text-zinc-300"
+          >
+            <MessageSquare size={20} />
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
