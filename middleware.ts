@@ -15,21 +15,31 @@ const redirectRoutes = [
     '/oracion',
     '/presentation',
     '/donativos',
-    '/conf', // conservar la regla previa si hace falta
+    '/conf',
 ]
 
 export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
+    const pathname = url.pathname
+
+    // --- 🔥 REDIRECCIÓN SOLO EN PRODUCCIÓN ---
+    if (process.env.NODE_ENV === 'production') {
+        if (pathname === '/') {
+            url.pathname = '/peticion'
+            return NextResponse.redirect(url)
+        }
+    }
+    // ------------------------------------------
 
     // normalizar sin slash final (salvo "/")
-    let pathname = url.pathname
-    if (pathname.endsWith('/') && pathname !== '/') {
-        pathname = pathname.slice(0, -1)
+    let normalized = pathname
+    if (normalized.endsWith('/') && normalized !== '/') {
+        normalized = normalized.slice(0, -1)
     }
 
-    // si la ruta es exactamente una de las listadas o está dentro de esa subruta, redirige a "/"
+    // reglas existentes
     for (const route of redirectRoutes) {
-        if (pathname === route || pathname.startsWith(route + '/')) {
+        if (normalized === route || normalized.startsWith(route + '/')) {
             url.pathname = '/'
             return NextResponse.redirect(url)
         }
@@ -38,9 +48,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
 }
 
-// Aplica el middleware solo a las rutas listadas y sus subrutas
 export const config = {
     matcher: [
+        '/',
         '/faq',
         '/faq/:path*',
         '/links',

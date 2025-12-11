@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { email } = await req.json();
 
     const { data, error } = await supabase
-      .from('emails') // nombre de tu tabla en Supabase
+      .from('emails')
       .insert([{ email }]);
 
     if (error) {

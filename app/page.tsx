@@ -1,73 +1,110 @@
-import { Image as LucideImage, Navigation } from "lucide-react";
-import Menu_navbar from "@/app/components/menu_navbar";
-import NotifyForm from "@/app/components/NotifyForm";
-import Footer from "@/app/components/footer";
+import Image from "next/image";
+import { Send, Zap } from "lucide-react";
 
-export const metadata = {
-  title: "Monte Sion Oaxaca",
-  description: "Estableciendo el Reino de Dios",
-};
-
-export default function Home({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {
-  const notified = searchParams?.notified === "1";
-
+export default function LandingHome() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex w-full max-w-3xl flex-col items-center sm:items-start justify-between py-16 px-6 sm:py-32 sm:px-16 gap-6 sm:gap-8">
-        
-        {/* Logo */}
-        <LucideImage className="invert" size={48} />
-
-        {/* Textos */}
-        <section className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-semibold leading-8 sm:leading-10 tracking-tight text-black dark:text-zinc-50">
-            Monte Sion Oaxaca
-          </h1>
-
-          <h2 className="text-lg sm:text-xl font-medium leading-7 sm:leading-8 text-zinc-700 dark:text-zinc-300">
-            Estableciendo el Reino de Dios
-          </h2>
-
-          <p className="text-base sm:text-lg leading-7 sm:leading-8 text-zinc-600 dark:text-zinc-400">
-            Gracias por visitar la comunidad digital de Monte Sion Oaxaca. 
-            Estamos trabajando en algo nuevo y emocionante. 
-            Vuelve pronto para ver las novedades.
-          </p>
-        </section>
-
-        {/* Botones */}
-        <div className="flex w-full flex-col gap-4 text-sm font-medium sm:flex-row sm:gap-6 sm:text-base">
-
-          {/* Botón mapa */}
-          <a
-            className="flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-zinc-700"
-            href="https://maps.app.goo.gl/Acry2gfKzD434GJH7"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Navigation size={16} />
-            Asistir presencialmente
-          </a>
-
-          {/* Área de notificación */}
-          {notified ? (
-            <div className="flex h-12 w-full sm:w-auto items-center justify-center rounded-full border border-black/10 px-5 bg-green-50 text-green-800 dark:bg-green-900/20">
-              Gracias — te avisaremos cuando esté listo.
-            </div>
-          ) : (
-            <div className="w-full sm:w-auto">
-              <NotifyForm />
-            </div>
-          )}
+    <header className="relative w-full overflow-hidden bg-white dark:bg-black">
+      <div className="relative min-h-screen flex items-center justify-center px-6 py-12 md:py-20 lg:py-28">
+        {/* Decorative backgrounds */}
+        <div className="pointer-events-none absolute inset-0 hidden dark:block" aria-hidden>
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/95 to-black/85" />
+          <div className="absolute inset-x-0 bottom-0 flex justify-center" aria-hidden>
+            {/* Replace '/fuego.svg' with your actual filename inside /public */}
+            <Image
+              src="/fuego.svg"
+              alt=""
+              aria-hidden="true"
+              width={1200}
+              height={400}
+              priority
+              className="w-[1200px] max-w-none opacity-95 translate-y-12 lg:translate-y-0"
+            />
+          </div>
         </div>
-      </main>
-      <div className="fixed left-1/2 bottom-24 -translate-x-1/2 z-30">
-      <Menu_navbar />
-      </div>
-      <div>
-        <Footer />
-      </div>
-    </div>
 
+        <div className="pointer-events-none absolute inset-0 block dark:hidden" aria-hidden>
+          <div className="absolute inset-0 bg-gradient-to-b from-white to-amber-50" />
+          <div className="absolute inset-0 flex items-end justify-center" aria-hidden>
+            <Image
+              src="/glow.svg"
+              alt=""
+              aria-hidden="true"
+              width={900}
+              height={360}
+              priority
+              className="w-full max-w-3xl opacity-95 translate-y-8 lg:translate-y-0"
+            />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-5xl w-full">
+          <div className="mx-auto max-w-3xl text-center sm:text-left">
+            <p className="text-sm sm:text-base font-medium text-neutral-700 dark:text-neutral-300 mb-2 sm:mb-4">
+              Monte Sion
+            </p>
+
+            <h1 className="font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-tight text-slate-900 dark:text-white drop-shadow-sm">
+              <span className="block">Bienvenido a casa!</span>
+            </h1>
+
+            <p className="mt-4 text-lg sm:text-xl text-slate-700 dark:text-slate-200 max-w-2xl">
+              Un lugar para ti en el Reino de Dios
+            </p>
+
+            <p className="mt-2 text-sm sm:text-base font-semibold text-slate-600 dark:text-slate-300">
+              1 CORINTIOS 15:22
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center justify-center sm:justify-start">
+              <a
+                href="#asistir"
+                role="button"
+                aria-label="Asistir presencialmente"
+                className="inline-flex items-center gap-3 rounded-full bg-amber-600 text-white px-5 py-3 text-sm font-semibold shadow-md hover:bg-amber-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 focus-visible:ring-offset-2"
+              >
+                <Send className="h-5 w-5" />
+                Asistir presencialmente
+              </a>
+
+              <a
+                href="#contacto"
+                aria-label="Quiero ser parte"
+                className="inline-flex items-center gap-3 rounded-full border border-neutral-200 dark:border-neutral-600 bg-white/95 dark:bg-neutral-800 text-neutral-900 dark:text-white px-5 py-3 text-sm font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-700/70 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-200 focus-visible:ring-offset-2"
+              >
+                <Zap className="h-5 w-5" />
+                Quiero ser parte
+              </a>
+            </div>
+
+            <nav className="mt-8 flex justify-center sm:justify-start gap-4 text-sm" role="navigation" aria-label="Secciones principales">
+              <a href="#inicio" className="text-neutral-700 dark:text-neutral-300 hover:underline focus:outline-none focus-visible:underline">
+                Inicio
+              </a>
+              <a href="#artistas" className="text-neutral-700 dark:text-neutral-300 hover:underline focus:outline-none focus-visible:underline">
+                Artistas
+              </a>
+              <a href="#listas" className="text-neutral-700 dark:text-neutral-300 hover:underline focus:outline-none focus-visible:underline">
+                Listas
+              </a>
+              <a href="#canciones" className="text-neutral-700 dark:text-neutral-300 hover:underline focus:outline-none focus-visible:underline">
+                Canciones
+              </a>
+            </nav>
+
+            <div className="mt-10 flex justify-center sm:justify-start">
+              <div className="inline-flex items-center gap-2 rounded-full bg-neutral-100 dark:bg-neutral-800/60 px-4 py-2 shadow-sm">
+                <button className="text-xs text-neutral-700 dark:text-neutral-200 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 rounded">Inicio</button>
+                <button className="text-xs text-neutral-700 dark:text-neutral-200 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 rounded">Artistas</button>
+                <button className="text-xs text-neutral-700 dark:text-neutral-200 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 rounded">Listas</button>
+                <button className="text-xs font-semibold bg-neutral-200 dark:bg-neutral-700/60 rounded-full px-3 py-1 text-neutral-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">Canciones</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-black pointer-events-none" aria-hidden />
+    </header>
   );
 }

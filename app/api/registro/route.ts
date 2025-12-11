@@ -24,7 +24,6 @@ export async function POST(req: Request) {
     // Insertar en Supabase
     const { data, error } = await supabase.from("registro").insert(body).select();
     if (error) {
-      console.error("Supabase error:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
@@ -32,18 +31,17 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: body.email,
-      subject: "¡Registro exitoso en Amor Verdadero!",
+      subject: "¡Hemos recibido tu petición y estamos en oración!",
       html: `
-        <h1>Hola ${body.nombre}!</h1>
-        <p>Bienvenid@ a la Comunidad en Amor Verdadero.</p>
-        <p>Haz clic en el siguiente enlace para unirte a comunidad en Whatsapp:</p>
-        <a href="https://chat.whatsapp.com/HubaXyY3G6NEI7QRQ1NjZC">Ingresar a la Comunidad</a>
+        <h1>Hola, ${body.nombre}!</h1>
+        <p>Tu petición es: ${body.petición}</p>
+        <p>Si requerimos mayor información nos pondremos en contacto por Whatsapp:</p>
+        <a href="https://youtube.com/@montesionoaxaca">Te invitamos a seguir creciendo en la Palabra de Dios, dando click sobre este texto.</a>
       `,
     });
 
     return NextResponse.json({ message: "Registro guardado y correo enviado", data }, { status: 200 });
   } catch (e: any) {
-    console.error("Server error:", e);
     return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
   }
 }
