@@ -22,13 +22,13 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     const pathname = url.pathname
 
-    // --- 🔥 REDIRECCIÓN SOLO EN PRODUCCIÓN ---
-    if (process.env.NODE_ENV === 'production') {
-        if (pathname === '/') {
-            url.pathname = '/peticion'
-            return NextResponse.redirect(url)
-        }
-    }
+    // // --- 🔥 REDIRECCIÓN SOLO EN PRODUCCIÓN ---
+    // if (process.env.NODE_ENV === 'production') {
+    //     if (pathname === '/') {
+    //         url.pathname = '/peticion'
+    //         return NextResponse.redirect(url)
+    //     }
+    // }
     // ------------------------------------------
 
     // normalizar sin slash final (salvo "/")
