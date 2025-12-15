@@ -7,7 +7,8 @@ import {
   Settings,
   Book,
   Rewind,
-  ArrowUpRight
+  ArrowUpRight,
+  FileText
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -47,6 +48,11 @@ export default function Menu({ collapsed, onToggle }: MenuProps) {
       icon: <Book size={20} />,
       href: null, // se abre en iframe
       onClick: () => setShowBible(true),
+    },
+    {
+      label: "¿Cómo debo orar?",
+      icon: <FileText size={20} />,
+      href: "/orar",
     },
     {
       label: "Soporte",
