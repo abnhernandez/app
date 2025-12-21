@@ -10,15 +10,15 @@ export default async function AdminPage() {
 
   return (
     <div className="p-8 space-y-10">
-      <h1 className="text-3xl font-semibold">
+      <h1 className="text-3xl font-bold">
         Panel de Administración
       </h1>
 
       <AdminUsersTable users={users} />
 
-      <ExportButtons />
-
       <AdminPeticiones data={peticiones} />
+
+      <ExportButtons />
     </div>
   )
 }
