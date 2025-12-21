@@ -10,18 +10,18 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex">
-      <aside className="w-64 p-4 border-r space-y-2">
-        <Link href="/dashboard">Dashboard</Link>
-
+      <aside className="w-64 p-4 space-y-2">
+        
         {/* 🔐 SOLO ADMIN VE EL LINK */}
         {role === "admin" && (
           <Link
             href="/admin"
-            className="text-red-600 font-medium"
+            className="p-4 font-bold"
           >
             Panel Admin
           </Link>
         )}
+                <Link href="/dashboard">Dashboard</Link>
       </aside>
 
       <main className="flex-1 p-6">{children}</main>
