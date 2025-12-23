@@ -1,5 +1,6 @@
 import { getDashboardData } from "@/lib/dashboard"
 import DashboardClient from "./DashboardClient"
+import { RutaTemplo } from "../components/ruta-templo"
 
 export default async function DashboardPage() {
   const data = await getDashboardData()
@@ -9,7 +10,9 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardClient
-    />
+    <>
+      <DashboardClient/>
+      <RutaTemplo/>
+    </>
   )
 }
