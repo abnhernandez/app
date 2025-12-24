@@ -1,5 +1,4 @@
 import RegistroForm from "@/app/components/registro"; 
-import GithubButton from "@/app/components/GithubButton"
 
 export default function RegistroPage() {
     return (
