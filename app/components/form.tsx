@@ -6,38 +6,26 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/bootstrap.css"
 import * as z from "zod"
+import CryptoJS from "crypto-js"
 import { crearRegistro } from "@/lib/registro-peticion-actions"
 
-// ---------------- VALIDACIONES ----------------
+const SECRET_KEY = "monte-sion-peticion"
+const STORAGE_KEY = "peticion_oracion_secure"
+
 const schema = z.object({
-  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres."),
-  apellido: z.string().min(2, "El apellido debe tener al menos 2 caracteres."),
-  email: z
-    .string()
-    .email("Correo electrónico inválido.")
-    .refine((email) => {
-      const blockedDomains = [
-        "example.com",
-        "dominio.com",
-        "tusitio.com",
-        "test.com",
-        "demo.com",
-        "10minutemail.com",
-        "tempmail.com",
-        "guerrillamail.com",
-      ]
-      const domain = email.split("@")[1]?.toLowerCase()
-      return domain && !blockedDomains.includes(domain)
-    }, "Ingresa un correo válido y real."),
-  telefono: z
-    .string()
-    .min(10, "El número de teléfono debe tener al menos 10 dígitos.")
-    .refine(
-      (phone) =>
-        !/^(\d)\1{9,}|^(1234567890|0000000000|1111111111)/.test(phone),
-      "Ingresa un número telefónico válido y real."
-    ),
-  peticion: z.string().min(1, "Escribe tu petición de oración."),
+  nombre: z.string().optional(),
+  apellido: z.string().optional(),
+  email: z.string().email("Correo inválido").optional(),
+  telefono: z.string().min(10, "Teléfono inválido").optional(),
+  peticion: z.string().min(1, "Escribe tu petición de oración"),
+  anonimo: z.boolean(),
+}).superRefine((data, ctx) => {
+  if (!data.anonimo) {
+    if (!data.nombre) ctx.addIssue({ path: ["nombre"], message: "Nombre requerido", code: "custom" })
+    if (!data.apellido) ctx.addIssue({ path: ["apellido"], message: "Apellido requerido", code: "custom" })
+    if (!data.email) ctx.addIssue({ path: ["email"], message: "Correo requerido", code: "custom" })
+    if (!data.telefono) ctx.addIssue({ path: ["telefono"], message: "Teléfono requerido", code: "custom" })
+  }
 })
 
 type FormValues = z.infer<typeof schema>
@@ -47,171 +35,191 @@ const commonInputClasses =
 
 export default function RegistroPage() {
   const [loading, setLoading] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [message, setMessage] = useState<null | { type: "success" | "error"; text: string }>(null)
 
   const {
     register,
     handleSubmit,
     control,
+    watch,
     reset,
-    formState: { errors },
+    setValue,
+    clearErrors,
+    formState: { errors }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
+    defaultValues: { anonimo: false, peticion: "" },
+    shouldUnregister: true, // 👈 CLAVE
   })
 
+  const anonimo = watch("anonimo")
+
+  // 🧹 Limpiar campos al activar anónimo
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search)
-      setSuccess(searchParams.get("success"))
+    if (anonimo) {
+      setValue("nombre", undefined)
+      setValue("apellido", undefined)
+      setValue("email", undefined)
+      setValue("telefono", undefined)
+      clearErrors(["nombre", "apellido", "email", "telefono"])
     }
-  }, [])
+  }, [anonimo, setValue, clearErrors])
+
+  // 🔐 Restaurar progreso cifrado
+  useEffect(() => {
+    try {
+      const encrypted = localStorage.getItem(STORAGE_KEY)
+      if (encrypted) {
+        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY)
+        const data = JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+        reset(data)
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [reset])
+
+  // 💾 Guardar progreso cifrado
+  useEffect(() => {
+    const sub = watch((data) => {
+      const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString()
+      localStorage.setItem(STORAGE_KEY, encrypted)
+    })
+    return () => sub.unsubscribe()
+  }, [watch])
+
+  const clearProgress = () => {
+    localStorage.removeItem(STORAGE_KEY)
+    reset({ anonimo: false, peticion: "" })
+  }
 
   const onSubmit = async (data: FormValues) => {
-    setLoading(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
-
     try {
-      await crearRegistro(data)
+      setLoading(true)
+      setMessage(null)
 
-      reset()
-      setSuccessMessage(
-        "¡Hemos recibido tu petición y estamos intercediendo por tu vida! Revisa tu correo para más detalles y recuerda: Confía en el SEÑOR de todo corazón y no te apoyes en tu propia inteligencia. Reconócelo en todos tus caminos y Él enderezará tus sendas. Proverbios 3:5-6 NVI"
-      )
+      const payload = {
+        ...data,
+        nombre: data.nombre ?? "",
+        apellido: data.apellido ?? "",
+        email: data.email ?? "",
+        telefono: data.telefono ?? "",
+      }
+
+      await crearRegistro(payload)
+
+      clearProgress()
+
+      setMessage({
+        type: "success",
+        text: "¡Hemos recibido tu petición! Estamos orando por ti. Proverbios 3:5-6",
+      })
     } catch (err: any) {
-      setErrorMessage(
-        err?.message || "Ocurrió un error al enviar el registro."
-      )
+      setMessage({
+        type: "error",
+        text: err?.message || "Ocurrió un error al enviar.",
+      })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md space-y-8">
-        <div className="rounded-2xl text-black dark:text-white font-bold text-center text-lg md:text-xl select-none">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md space-y-6">
+
+        <h1 className="text-center font-bold text-xl">
           Petición de oración · Monte Sion
-        </div>
+        </h1>
 
-        {success === "1" && (
-          <div className="p-4 mb-4 rounded bg-green-200 text-green-900">
-            Registro exitoso. Revisa tu correo para el enlace de ingreso a la
-            Comunidad.
+        {message && (
+          <div className={`p-4 rounded text-sm ${
+            message.type === "success"
+              ? "bg-green-200 text-green-900"
+              : "bg-red-200 text-red-900"
+          }`}>
+            {message.text}
           </div>
         )}
 
-        {successMessage && (
-          <div className="p-4 mb-4 rounded bg-green-200 text-green-900">
-            {successMessage}
-          </div>
-        )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6 rounded-2xl">
 
-        {errorMessage && (
-          <div className="p-4 mb-4 rounded bg-red-200 text-red-900">
-            {errorMessage}
-          </div>
-        )}
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" {...register("anonimo")} />
+            Enviar de forma anónima
+          </label>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-5 backdrop-blur-xl p-6 rounded-2xl bg-white/60 dark:bg-black/40"
-        >
-          {/* NOMBRE / APELLIDO */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          {!anonimo && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <input {...register("nombre")} placeholder="Nombre" className={commonInputClasses} />
+                  {errors.nombre && <p className="text-red-500 text-xs">{errors.nombre.message}</p>}
+                </div>
+                <div>
+                  <input {...register("apellido")} placeholder="Apellido" className={commonInputClasses} />
+                  {errors.apellido && <p className="text-red-500 text-xs">{errors.apellido.message}</p>}
+                </div>
+              </div>
+
+              <div>
+                <input {...register("email")} placeholder="Correo electrónico" className={commonInputClasses} />
+                {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+              </div>
+
               <input
-                {...register("nombre")}
-                placeholder="Nombre *"
-                className={commonInputClasses}
+                type="tel"
+                autoComplete="tel"
+                className="absolute opacity-0 pointer-events-none"
+                onChange={(e) => setValue("telefono", e.target.value)}
               />
-              {errors.nombre && (
-                <p className="text-red-500 text-sm">
-                  {errors.nombre.message}
-                </p>
-              )}
-            </div>
 
-            <div>
-              <input
-                {...register("apellido")}
-                placeholder="Apellido *"
-                className={commonInputClasses}
-              />
-              {errors.apellido && (
-                <p className="text-red-500 text-sm">
-                  {errors.apellido.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* EMAIL */}
-          <div>
-            <input
-              {...register("email")}
-              placeholder="Ingresa tu correo electrónico *"
-              className={commonInputClasses}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-
-          {/* TELÉFONO */}
-          <div className="space-y-1">
-            <Controller
-              name="telefono"
-              control={control}
-              render={({ field }) => (
-                <PhoneInput
-                  country="mx"
-                  enableSearch
-                  containerClass="!w-full"
-                  inputClass="!w-full !h-12 !rounded-xl !bg-white dark:!bg-white/10 !border !border-zinc-200 dark:!border-white/20 !text-black dark:!text-white !placeholder:text-zinc-500 dark:!placeholder:text-zinc-300 !focus:ring-2 !focus:ring-emerald-400 !focus:outline-none !pl-14"
-                  inputStyle={{ paddingLeft: "56px" }}
-                  value={field.value || ""}
-                  onChange={(val) => field.onChange(val)}
+              <div>
+                <Controller
+                  name="telefono"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      country="mx"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      inputClass="!w-full !h-12 !rounded-xl"
+                    />
+                  )}
                 />
-              )}
-            />
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Usa un número válido para recibir información por WhatsApp.
-            </p>
-            {errors.telefono && (
-              <p className="text-red-500 text-sm">
-                {errors.telefono.message}
-              </p>
-            )}
-          </div>
+                {errors.telefono && <p className="text-red-500 text-xs">{errors.telefono.message}</p>}
+              </div>
+            </>
+          )}
 
-          {/* PETICIÓN */}
           <div>
             <textarea
               {...register("peticion")}
-              placeholder="Escribe tu petición de oración *"
+              placeholder="Escribe tu petición de oración"
               rows={4}
               className={`${commonInputClasses} resize-none`}
             />
-            {errors.peticion && (
-              <p className="text-red-500 text-sm">
-                {errors.peticion.message}
-              </p>
-            )}
+            {errors.peticion && <p className="text-red-500 text-xs">{errors.peticion.message}</p>}
           </div>
 
-          {/* BOTÓN */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-black text-white hover:opacity-90 transition font-bold dark:bg-white dark:text-black disabled:opacity-50 disabled:cursor-not-allowed select-none"
+            className="w-full py-3 rounded-xl bg-black text-white font-bold disabled:opacity-50"
           >
-            {loading ? "Enviando…" : "Registrarse"}
+            {loading ? "Enviando…" : anonimo ? "Enviar anónimamente" : "Enviar petición"}
           </button>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={clearProgress}
+              className="text-xs text-zinc-500 hover:text-zinc-700 underline"
+            >
+              Borrar progreso
+            </button>
+          </div>
+
         </form>
       </div>
     </div>
