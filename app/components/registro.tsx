@@ -1,22 +1,25 @@
 "use client"
 
 import { registerAction } from "@/lib/auth-actions"
+import { passwordFeedback } from "@/lib/password-feedback"
 import { createBrowserClient } from "@supabase/auth-helpers-nextjs"
-import { Github, Notebook, Music } from "lucide-react"
+import { GithubIcon, Notebook, Music } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { motion, AnimatePresence } from "framer-motion"
 
 /* -------------------- Schema -------------------- */
 const schema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Correo inválido"),
+  email: z.string().email({ message: "Correo inválido" }),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 })
 
 type FormValues = z.infer<typeof schema>
 type OAuthProvider = "github" | "notion" | "spotify"
+type Flow = "base" | "otp"
 
 /* -------------------- Supabase -------------------- */
 const supabase = createBrowserClient(
@@ -24,143 +27,222 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-/* -------------------- OAuth -------------------- */
-const handleOAuthRegister = async (provider: OAuthProvider) => {
-  await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: `${location.origin}/auth/callback`,
-    },
-  })
-}
-
 /* -------------------- UI -------------------- */
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+  "w-full rounded-2xl bg-black/40 border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-500"
 
-const oauthButtonClass = `
-  flex items-center justify-center gap-3
-  w-full
-  rounded-xl px-6 py-3
-  font-bold
-  backdrop-blur-xl
-  border border-white/20
-  shadow-[0_8px_30px_rgb(0,0,0,0.12)]
-  hover:opacity-90
-`
+const cardClass =
+  "w-full max-w-md rounded-3xl bg-white/5 backdrop-blur-xl p-6 shadow-2xl border border-white/10"
 
-export default function RegistroForm() {
+export default function RegistroIOSAuth() {
+  const [flow, setFlow] = useState<Flow>("base")
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [pwdFeedback, setPwdFeedback] = useState<string | null>(null)
+
+  /* ---- Phone OTP ---- */
+  const [phone, setPhone] = useState("")
+  const [otp, setOtp] = useState("")
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   })
 
+  /* -------------------- Email / Password -------------------- */
   const onSubmit = async (data: FormValues) => {
     setLoading(true)
     setError(null)
-    setMessage(null)
 
     try {
       const result = await registerAction(data)
-
       if (result?.error) {
         setError(result.error)
         return
       }
-
-      setMessage("Usuario registrado correctamente")
-      reset()
+      setMessage("Registro completado. Revisa tu correo.")
     } finally {
       setLoading(false)
     }
   }
 
+  const handlePasswordChange = async (value: string) => {
+    const feedback = await passwordFeedback({
+      length: value.length,
+      hasUpper: /[A-Z]/.test(value),
+      hasNumber: /\d/.test(value),
+      hasSymbol: /[^a-zA-Z0-9]/.test(value),
+    })
+    if (typeof feedback === "string") setPwdFeedback(feedback)
+    else setPwdFeedback(JSON.stringify(feedback))
+  }
+
+  /* -------------------- Phone OTP -------------------- */
+  const sendOTP = async () => {
+    setLoading(true)
+    setError(null)
+
+    const { error } = await supabase.auth.signInWithOtp({ phone })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setFlow("otp")
+    }
+
+    setLoading(false)
+  }
+
+  const verifyOTP = async () => {
+    setLoading(true)
+    setError(null)
+
+    const { error } = await supabase.auth.verifyOtp({
+      phone,
+      token: otp,
+      type: "sms",
+    })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setMessage("Registro completado con teléfono")
+    }
+
+    setLoading(false)
+  }
+
+  /* -------------------- OAuth -------------------- */
+  const handleOAuthRegister = async (provider: OAuthProvider) => {
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    })
+  }
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md space-y-4 p-6 rounded-2xl bg-white/60 dark:bg-black/40 backdrop-blur-xl"
-      >
-        <h2 className="text-center text-xl font-bold">Registro</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black px-4">
+      <AnimatePresence mode="wait">
+        {/* ================= BASE ================= */}
+        {flow === "base" && (
+          <motion.div
+            key="base"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            className={cardClass}
+          >
+            <h1 className="text-xl font-semibold text-white text-center">
+              Crear cuenta
+            </h1>
 
-        {message && <p className="text-green-600 text-sm">{message}</p>}
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {message && <p className="text-emerald-400 text-sm">{message}</p>}
 
-        <input
-          {...register("name")}
-          placeholder="Nombre"
-          className={inputClass}
-          disabled={loading}
-        />
-        {errors.name && (
-          <p className="text-red-500 text-sm">{errors.name.message}</p>
+            {/* Email */}
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-3">
+              <input {...register("name")} placeholder="Nombre" className={inputClass} />
+              {errors.name && <p className="text-red-400 text-sm">{errors.name.message}</p>}
+
+              <input {...register("email")} placeholder="Correo" className={inputClass} />
+              {errors.email && <p className="text-red-400 text-sm">{errors.email.message}</p>}
+
+              <input
+                {...register("password", {
+                  onChange: e => handlePasswordChange(e.target.value),
+                })}
+                type="password"
+                placeholder="Contraseña"
+                className={inputClass}
+              />
+              {pwdFeedback && <p className="text-emerald-400 text-xs">{pwdFeedback}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-2xl bg-emerald-600 py-3 font-semibold text-black"
+              >
+                Registrarme con Email
+              </button>
+            </form>
+
+            {/* Phone */}
+            <div className="mt-6 space-y-3">
+              <input
+                placeholder="+52 9511234567"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                className={inputClass}
+              />
+              <button
+                onClick={sendOTP}
+                disabled={loading}
+                className="w-full rounded-2xl bg-white/10 py-3 text-white"
+              >
+                Continuar con Teléfono
+              </button>
+            </div>
+
+            {/* OAuth */}
+            <div className="mt-6 space-y-3">
+              <button
+                onClick={() => handleOAuthRegister("github")}
+                className="w-full rounded-2xl bg-white/10 py-3 text-white flex justify-center gap-3"
+              >
+                <GithubIcon /> GitHub
+              </button>
+              <button
+                onClick={() => handleOAuthRegister("notion")}
+                className="w-full rounded-2xl bg-white/10 py-3 text-white flex justify-center gap-3"
+              >
+                <Notebook /> Notion
+              </button>
+              <button
+                onClick={() => handleOAuthRegister("spotify")}
+                className="w-full rounded-2xl bg-white/10 py-3 text-white flex justify-center gap-3"
+              >
+                <Music /> Spotify
+              </button>
+            </div>
+          </motion.div>
         )}
 
-        <input
-          {...register("email")}
-          type="email"
-          placeholder="Correo"
-          className={inputClass}
-          disabled={loading}
-        />
-        {errors.email && (
-          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        {/* ================= OTP ================= */}
+        {flow === "otp" && (
+          <motion.div
+            key="otp"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            className={cardClass}
+          >
+            <h2 className="text-lg font-semibold text-white text-center">
+              Código SMS
+            </h2>
+
+            <input
+              placeholder="123456"
+              value={otp}
+              onChange={e => setOtp(e.target.value)}
+              className={`${inputClass} mt-6 text-center tracking-widest`}
+            />
+
+            <button
+              onClick={verifyOTP}
+              disabled={loading}
+              className="mt-6 w-full rounded-2xl bg-emerald-600 py-3 font-semibold text-black"
+            >
+              Confirmar registro
+            </button>
+          </motion.div>
         )}
-
-        <input
-          {...register("password")}
-          type="password"
-          placeholder="Contraseña"
-          className={inputClass}
-          disabled={loading}
-        />
-        {errors.password && (
-          <p className="text-red-500 text-sm">{errors.password.message}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 rounded-xl bg-black text-white hover:opacity-90 disabled:opacity-50"
-        >
-          {loading ? "Registrando..." : "Registrarse"}
-        </button>
-      </form>
-
-      {/* OAuth Providers */}
-      <div className="w-full max-w-md space-y-3">
-        <button
-          onClick={() => handleOAuthRegister("github")}
-          className={oauthButtonClass}
-        >
-          <Github className="w-5 h-5" />
-          <span>Registrarse con GitHub</span>
-        </button>
-
-        <button
-          onClick={() => handleOAuthRegister("notion")}
-          className={oauthButtonClass}
-        >
-          <Notebook className="w-5 h-5" />
-          <span>Registrarse con Notion</span>
-        </button>
-
-        <button
-          onClick={() => handleOAuthRegister("spotify")}
-          className={oauthButtonClass}
-        >
-          <Music className="w-5 h-5" />
-          <span>Registrarse con Spotify</span>
-        </button>
-      </div>
+      </AnimatePresence>
     </div>
   )
 }
