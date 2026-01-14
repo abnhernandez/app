@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import Card from "@/app/components/card";
 import Menu from "@/app/components/menu";
+import { RutaTemplo } from "@/app/components/ruta-templo"
 
 /* =======================
    Tipos
@@ -42,6 +43,7 @@ export default function Page() {
           {CARDS.map(({ title, href }) => (
             <Link key={href} href={href} className="block">
               <Card title={title} />
+              <RutaTemplo/>
             </Link>
           ))}
         </section>
