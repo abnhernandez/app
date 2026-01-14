@@ -9,9 +9,11 @@ import * as z from "zod"
 import CryptoJS from "crypto-js"
 import { crearRegistro } from "@/lib/registro-peticion-actions"
 
+// --------- CIFRADO LOCAL (solo para LocalStorage) ----------
 const SECRET_KEY = "monte-sion-peticion"
 const STORAGE_KEY = "peticion_oracion_secure"
 
+// --------- ESQUEMA ----------
 const schema = z.object({
   nombre: z.string().optional(),
   apellido: z.string().optional(),
@@ -30,6 +32,69 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+// --------- UTILIDADES RSA + AES (E2EE) ----------
+function pemToArrayBuffer(pem?: string) {
+  if (!pem) {
+    throw new Error("Clave pública RSA no encontrada en NEXT_PUBLIC_RSA_PUBLIC_KEY")
+  }
+
+  const b64 = pem.replace(/-----.*?-----/g, "").replace(/\s+/g, "")
+  const binary = atob(b64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return bytes.buffer
+}
+
+function bufferToHex(buffer: Uint8Array) {
+  return Array.from(buffer).map(b => b.toString(16).padStart(2, "0")).join("")
+}
+
+async function encryptE2EE(text: string) {
+  const enc = new TextEncoder()
+
+  // 1. Importar clave pública RSA
+  const publicKey = await window.crypto.subtle.importKey(
+    "spki",
+    pemToArrayBuffer(process.env.NEXT_PUBLIC_RSA_PUBLIC_KEY),
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    false,
+    ["encrypt"]
+  )
+
+  // 2. Generar clave AES cruda
+  const aesKeyRaw = window.crypto.getRandomValues(new Uint8Array(32)) // 256 bits
+  const iv = window.crypto.getRandomValues(new Uint8Array(12))
+
+  const aesKey = await window.crypto.subtle.importKey(
+    "raw",
+    aesKeyRaw,
+    "AES-GCM",
+    false,
+    ["encrypt"]
+  )
+
+  // 3. Cifrar texto con AES-GCM
+  const cipherBuffer = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    aesKey,
+    enc.encode(text)
+  )
+
+  // 4. Cifrar la clave AES con RSA-OAEP
+  const encryptedAesKey = await window.crypto.subtle.encrypt(
+    { name: "RSA-OAEP" },
+    publicKey,
+    aesKeyRaw
+  )
+
+  return {
+    peticion_cipher: bufferToHex(new Uint8Array(cipherBuffer)),
+    peticion_iv: bufferToHex(iv),
+    peticion_key_rsa: bufferToHex(new Uint8Array(encryptedAesKey)),
+  }
+}
+
+// --------- UI ----------
 const commonInputClasses =
   "w-full px-4 py-3 rounded-xl bg-white dark:bg-white/10 border border-zinc-200 dark:border-white/20 text-black dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-300 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
 
@@ -49,12 +114,11 @@ export default function RegistroPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { anonimo: false, peticion: "" },
-    shouldUnregister: true, // 👈 CLAVE
+    shouldUnregister: true,
   })
 
   const anonimo = watch("anonimo")
 
-  // 🧹 Limpiar campos al activar anónimo
   useEffect(() => {
     if (anonimo) {
       setValue("nombre", undefined)
@@ -98,15 +162,22 @@ export default function RegistroPage() {
       setLoading(true)
       setMessage(null)
 
+      // 🔐 Cifrar petición en el navegador (E2EE)
+      const e2ee = await encryptE2EE(data.peticion)
+
       const payload = {
         ...data,
+        ...e2ee,      // texto ya cifrado
+        peticion: "", // nunca se envía en claro
         nombre: data.nombre ?? "",
         apellido: data.apellido ?? "",
         email: data.email ?? "",
         telefono: data.telefono ?? "",
       }
 
-      await crearRegistro(payload)
+const res = await crearRegistro(payload)
+console.log("RESPUESTA SERVER:", res)
+if (!res?.ok) throw new Error(res?.debug || "Error desconocido")
 
       clearProgress()
 
@@ -123,11 +194,10 @@ export default function RegistroPage() {
       setLoading(false)
     }
   }
-
+  
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md space-y-6">
-
         <h1 className="text-center font-bold text-xl">
           Petición de oración · Monte Sion
         </h1>
@@ -143,7 +213,6 @@ export default function RegistroPage() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6 rounded-2xl">
-
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" {...register("anonimo")} />
             Enviar de forma anónima
@@ -166,13 +235,6 @@ export default function RegistroPage() {
                 <input {...register("email")} placeholder="Correo electrónico" className={commonInputClasses} />
                 {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
               </div>
-
-              <input
-                type="tel"
-                autoComplete="tel"
-                className="absolute opacity-0 pointer-events-none"
-                onChange={(e) => setValue("telefono", e.target.value)}
-              />
 
               <div>
                 <Controller
@@ -219,7 +281,6 @@ export default function RegistroPage() {
               Borrar progreso
             </button>
           </div>
-
         </form>
       </div>
     </div>

@@ -1,14 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import {
-  Search,
-  Eye,
-  X,
-  Trash2,
-  Sparkles,
-} from "lucide-react"
-
+import { Search, Eye, X, Trash2, Sparkles } from "lucide-react"
 import {
   updateEstadoPeticion,
   deletePeticion,
@@ -32,7 +25,7 @@ type Peticion = {
   email: string
   telefono: string
   peticion: string
-  estado: EstadoPeticion
+  estado: string
   resumen_ia?: string | null
   created_at_cdmx: string
 }
@@ -40,43 +33,49 @@ type Peticion = {
 /* =====================
    ESTADOS UI
 ===================== */
-const ESTADOS = {
-  pending: {
-    label: "En espera",
-    color: "bg-neutral-100 text-neutral-600",
-  },
+const ESTADOS: Record<
+  EstadoPeticion,
+  { label: string; color: string }
+> = {
+  pending: { label: "Pendiente", color: "bg-neutral-100 text-neutral-600" },
   orando: {
-    label: "En oración",
+    label: "En proceso de oración",
     color: "bg-emerald-100 text-emerald-700",
   },
-  info: {
-    label: "Requiere info",
-    color: "bg-amber-100 text-amber-700",
-  },
-  completada: {
-    label: "Completada",
-    color: "bg-blue-100 text-blue-700",
-  },
-  rechazada: {
-    label: "Rechazada",
-    color: "bg-red-100 text-red-700",
-  },
+  info: { label: "En revisión", color: "bg-amber-100 text-amber-700" },
+  completada: { label: "Completada", color: "bg-blue-100 text-blue-700" },
+  rechazada: { label: "Cerrada", color: "bg-red-100 text-red-700" },
 }
 
 /* =====================
-   BADGE
+   BADGE SEGURO
 ===================== */
-function EstadoBadge({ estado }: { estado: EstadoPeticion }) {
-  const s = ESTADOS[estado]
+function EstadoBadge({ estado }: { estado: string }) {
+  const s =
+    ESTADOS[estado as EstadoPeticion] ?? {
+      label: estado,
+      color: "bg-gray-200 text-gray-700",
+    }
+
   return (
-    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${s.color}`}>
+    <span
+      className={`rounded-full px-2.5 py-1 text-xs font-medium ${s.color}`}
+    >
       {s.label}
     </span>
   )
 }
 
+function formatFecha(fecha: string) {
+  return new Date(fecha).toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
 /* =====================
-   MODAL / FICHA
+   MODAL
 ===================== */
 function PeticionModal({
   peticion,
@@ -92,63 +91,53 @@ function PeticionModal({
   const [isPending, startTransition] = useTransition()
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="w-full rounded-2xl shadow-xl bg-neutral-50 dark:bg-neutral-900">
-        {/* HEADER */}
-        <header className="flex items-center justify-between p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-neutral-900 shadow-xl">
+        <header className="flex justify-between p-4 border-b">
           <div>
-            <h3 className="text-lg font-semibold">
+            <h3 className="font-semibold">
               {peticion.nombre} {peticion.apellido}
             </h3>
-            <p className="text-sm">
-              {peticion.email} · {peticion.telefono}
-            </p>
+            <p className="text-sm text-neutral-500">{peticion.email}</p>
           </div>
-
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1"
-          >
+          <button onClick={onClose}>
             <X size={18} />
           </button>
         </header>
 
-        {/* BODY */}
         <div className="p-4 space-y-4 text-sm">
-          <div className="rounded-xl p-4 leading-relaxed">
+          <div className="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3">
             {peticion.peticion}
           </div>
 
           {peticion.resumen_ia && (
-            <div className="rounded-xl bg-neutral-800 text-neutral-100 p-3">
+            <div className="rounded-lg bg-neutral-900 text-white p-3">
               🤖 <strong>Resumen IA:</strong> {peticion.resumen_ia}
             </div>
           )}
         </div>
 
-        {/* FOOTER */}
-        <footer className="flex flex-wrap gap-2 justify-between p-4">
-          <div className="flex flex-wrap gap-2">
-            <select
-              value={peticion.estado}
-              onChange={(e) => {
-                const estado = e.target.value as EstadoPeticion
-                startTransition(async () => {
-                  await updateEstadoPeticion(peticion.id, estado)
-                  onUpdate({ estado })
-                })
-              }}
-              className="rounded-lg px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-900"
-            >
-              {Object.entries(ESTADOS).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
+        <footer className="flex flex-wrap gap-2 justify-between p-4 border-t">
+          <select
+            value={peticion.estado}
+            onChange={(e) => {
+              const estado = e.target.value as EstadoPeticion
+              startTransition(async () => {
+                await updateEstadoPeticion(peticion.id, estado)
+                onUpdate({ estado })
+              })
+            }}
+            className="rounded px-3 py-2 text-sm"
+          >
+            {Object.entries(ESTADOS).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v.label}
+              </option>
+            ))}
+          </select>
 
+          <div className="flex gap-2">
             <button
-              disabled={isPending}
               onClick={() =>
                 startTransition(async () => {
                   const resumen = await generarResumenIA(
@@ -158,27 +147,25 @@ function PeticionModal({
                   onUpdate({ resumen_ia: resumen })
                 })
               }
-              className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+              className="flex items-center gap-1 px-3 py-2 text-sm rounded bg-purple-100"
             >
-              <Sparkles size={16} />
-              Resumen IA
+              <Sparkles size={14} /> Resumen IA
+            </button>
+
+            <button
+              onClick={() => {
+                if (confirm("¿Eliminar definitivamente esta petición?")) {
+                  startTransition(async () => {
+                    await deletePeticion(peticion.id)
+                    onDelete()
+                  })
+                }
+              }}
+              className="flex items-center gap-1 px-3 py-2 text-sm rounded bg-red-100"
+            >
+              <Trash2 size={14} /> Eliminar
             </button>
           </div>
-
-          <button
-            onClick={() => {
-              if (confirm("¿Eliminar esta petición definitivamente?")) {
-                startTransition(async () => {
-                  await deletePeticion(peticion.id)
-                  onDelete()
-                })
-              }
-            }}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-400 dark:bg-red-700 px-3 py-2 text-sm hover:bg-red-500 dark:hover:bg-red-800"
-          >
-            <Trash2 size={16} />
-            Eliminar
-          </button>
         </footer>
       </div>
     </div>
@@ -202,66 +189,51 @@ export default function AdminPeticiones({ data }: { data: Peticion[] }) {
   }, [items, search])
 
   return (
-    <section className="space-y-7">
-      {/* HEADER */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-2xl font-semibold">
-          Peticiones de oración
-        </h2>
-
-        <div className="relative w-full max-w-sm">
-          <Search size={16} className="absolute left-3 top-2.5" />
-          <input
-            placeholder="Buscar por nombre o email"
-            className="w-full rounded-xl pl-9 pr-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-900"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+    <section className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Peticiones de Oración</h2>
+        <input
+          placeholder="Buscar..."
+          className="border rounded px-3 py-1 text-sm"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-hidden rounded-2xl">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-300 dark:bg-neutral-900">
-            <tr className="text-left">
-              <th className="px-4 py-3">Nombre</th>
-              <th className="px-4 py-3">Correo</th>
-              <th className="px-4 py-3">Estado</th>
-              <th className="px-4 py-3">Fecha</th>
-              <th className="px-4 py-3 text-right">Acción</th>
+      <table className="w-full text-sm border rounded">
+        <thead className="bg-neutral-100">
+          <tr>
+            <th className="p-2 text-left">Nombre</th>
+            <th className="p-2 text-left">Correo</th>
+            <th className="p-2">Estado</th>
+            <th className="p-2">Fecha</th>
+            <th className="p-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((p) => (
+            <tr key={p.id} className="border-t">
+              <td className="p-2">
+                {p.nombre} {p.apellido}
+              </td>
+              <td className="p-2">{p.email}</td>
+              <td className="p-2">
+                <EstadoBadge estado={p.estado} />
+              </td>
+              <td className="p-2">{formatFecha(p.created_at_cdmx)}</td>
+              <td className="p-2 text-right">
+                <button
+                  onClick={() => setSelected(p)}
+                  className="text-blue-600 flex items-center gap-1"
+                >
+                  <Eye size={14} /> Ver
+                </button>
+              </td>
             </tr>
-          </thead>
+          ))}
+        </tbody>
+      </table>
 
-          <tbody className="divide-y">
-            {filtered.map((p) => (
-              <tr key={p.id} className="">
-                <td className="px-4 py-3 font-medium">
-                  {p.nombre} {p.apellido}
-                </td>
-                <td className="px-4 py-3">{p.email}</td>
-                <td className="px-4 py-3">
-                  <EstadoBadge estado={p.estado} />
-                </td>
-                <td className="px-4 py-3">
-                  {new Date(p.created_at_cdmx).toLocaleDateString("es-ES")}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => setSelected(p)}
-                    className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs"
-                  >
-                    <Eye size={14} />
-                    Ver
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* MODAL */}
       {selected && (
         <PeticionModal
           peticion={selected}

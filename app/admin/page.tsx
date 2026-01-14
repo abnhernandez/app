@@ -3,6 +3,7 @@ import { getPeticiones } from "@/lib/peticiones-actions"
 import AdminUsersTable from "./AdminUsersTable"
 import AdminPeticiones from "./AdminPeticiones"
 import ExportButtons from "./ExportButtons"
+import PeticionesList from "@/app/components/PeticionesList"
 
 export default async function AdminPage() {
   const users = await getAllUsers()
@@ -17,7 +18,9 @@ export default async function AdminPage() {
       <AdminUsersTable users={users} />
 
       <AdminPeticiones data={peticiones} />
-
+    <div className="flex justify-center p-6">
+      <PeticionesList peticiones={peticiones} />
+    </div>
       <ExportButtons />
     </div>
   )
