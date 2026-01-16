@@ -5,6 +5,7 @@ import nodemailer from "nodemailer"
 import { rateLimit } from "@/lib/rate-limit"
 import { headers } from "next/headers"
 import crypto from "crypto"
+import { createNotification } from "@/lib/notifications"
 
 type RegistroData = {
   nombre: string
@@ -13,13 +14,11 @@ type RegistroData = {
   telefono: string
   anonimo: boolean
 
-  // 🔐 Vienen cifrados desde el frontend (E2EE)
   peticion_cipher: string
   peticion_iv: string
   peticion_key_rsa: string
 }
 
-// ---------- VALIDAR CLAVES ----------
 if (
   !process.env.PETICION_AES_KEY ||
   !process.env.PETICION_HMAC_KEY ||
@@ -28,17 +27,15 @@ if (
   throw new Error("Faltan claves criptográficas en variables de entorno")
 }
 
-const AES_KEY = Buffer.from(process.env.PETICION_AES_KEY, "hex") // 32 bytes
+const AES_KEY = Buffer.from(process.env.PETICION_AES_KEY, "hex")
 const HMAC_KEY = process.env.PETICION_HMAC_KEY
 const RSA_PRIVATE_KEY = process.env.RSA_PRIVATE_KEY
 
-// ---------- SUPABASE ----------
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// ---------- EMAIL ----------
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
@@ -49,15 +46,13 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-// ---------- CRYPTO ----------
 function sha256(value: string) {
   return crypto.createHash("sha256").update(value).digest("hex")
 }
 
-// Descifrado E2EE (RSA → AES)
 function decryptE2EE(cipherHex: string, ivHex: string, keyHex: string) {
   const privateKey = crypto.createPrivateKey({
-    key: process.env.RSA_PRIVATE_KEY!,
+    key: RSA_PRIVATE_KEY!,
     format: "pem",
     type: "pkcs8",
   })
@@ -91,7 +86,6 @@ function decryptE2EE(cipherHex: string, ivHex: string, keyHex: string) {
   return decrypted.toString("utf8")
 }
 
-// Cifrado para DB (AES servidor)
 function encryptAES(text: string) {
   const iv = crypto.randomBytes(12)
   const cipher = crypto.createCipheriv("aes-256-gcm", AES_KEY, iv)
@@ -106,17 +100,14 @@ function encryptAES(text: string) {
   }
 }
 
-// Firma HS256
 function signHMAC(data: string) {
   return crypto.createHmac("sha256", HMAC_KEY).update(data).digest("hex")
 }
 
-// ---------- UTIL ----------
 function sanitize(text: string) {
   return text.replace(/<[^>]*>?/gm, "").trim()
 }
 
-// ---------- SERVER ACTION ----------
 export async function crearRegistro(data: RegistroData) {
   try {
     const h = await headers()
@@ -133,34 +124,27 @@ export async function crearRegistro(data: RegistroData) {
       h.get("cf-ipcountry") ??
       "MX"
 
-    // 🚦 Rate limits
     await rateLimit(`ip:${ipHash}`, 5, 60_000)
 
     if (!data.anonimo && data.email) {
       await rateLimit(`email:${sha256(data.email)}`, 3, 60_000)
     }
 
-    // 🔓 Descifrar petición que vino del navegador (E2EE)
     const textoPlano = decryptE2EE(
       data.peticion_cipher,
       data.peticion_iv,
       data.peticion_key_rsa
     )
 
-    // 🧼 Sanitizar
     const peticionLimpia = sanitize(textoPlano)
 
-    // 🔐 Volver a cifrar para base de datos
     const cipher = encryptAES(peticionLimpia)
 
-    // ✍️ Firma HS256
     const hmac = signHMAC(cipher.data)
 
-    // 🧂 Hash de datos sensibles
     const emailHash = data.email ? sha256(data.email) : null
     const telefonoHash = data.telefono ? sha256(data.telefono) : null
 
-    // 💾 Guardar en Supabase
     const { error } = await supabase.from("registro").insert({
       nombre: data.anonimo ? null : data.nombre || null,
       apellido: data.anonimo ? null : data.apellido || null,
@@ -183,7 +167,13 @@ export async function crearRegistro(data: RegistroData) {
       throw new Error("Error al guardar la petición")
     }
 
-    // 📩 Correo de confirmación
+    await createNotification({
+      userId: "admin",
+      title: "Nueva petición recibida",
+      message: "Se ha enviado una nueva petición de oración",
+      tone: "attention",
+    })
+
     if (!data.anonimo && data.email) {
       try {
         await transporter.sendMail({
@@ -203,11 +193,11 @@ export async function crearRegistro(data: RegistroData) {
     }
 
     return { ok: true }
-} catch (err: any) {
-  console.error("🔥 ERROR REAL:", err)
-  return {
-    ok: false,
-    debug: err?.message || String(err),
+  } catch (err: any) {
+    console.error("🔥 ERROR REAL:", err)
+    return {
+      ok: false,
+      debug: err?.message || String(err),
+    }
   }
-}
 }

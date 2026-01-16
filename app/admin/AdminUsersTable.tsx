@@ -7,8 +7,6 @@ import {
   User,
   Trash2,
   Search,
-  Loader2,
-  X,
 } from "lucide-react"
 
 /* =====================
@@ -117,8 +115,8 @@ function Toast({ message, type }: { message: string; type: "ok" | "error" }) {
 /* =====================
    MAIN
 ===================== */
-export default function AdminUsersTable({ users }: { users: UserItem[] }) {
-  const [data, setData] = useState(users)
+export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) {
+  const [data, setData] = useState<UserItem[]>(users)
   const [isPending, startTransition] = useTransition()
 
   const [query, setQuery] = useState("")
@@ -209,8 +207,9 @@ export default function AdminUsersTable({ users }: { users: UserItem[] }) {
   return (
     <div className="space-y-7">
       <h2 className="text-2xl font-semibold">
-          Gestión de Identidad y Accesos (IAM)
-        </h2>
+        Gestión de Identidad y Accesos (IAM)
+      </h2>
+
       {/* CONTROLS */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative max-w-sm w-full">
