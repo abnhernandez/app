@@ -21,7 +21,7 @@ export default function ResetPasswordForm(){
       const { error } = await supabase.auth.updateUser({password:data.password})
       if(error) setError(error.message)
       else router.push("/login")
-    }catch(e){ setError("Error de servidor") }
+    }catch{ setError("Error de servidor") }
     finally{ setLoading(false) }
   }
 

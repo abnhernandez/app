@@ -8,6 +8,7 @@ import "react-phone-input-2/lib/bootstrap.css"
 import * as z from "zod"
 import CryptoJS from "crypto-js"
 import { crearRegistro } from "@/lib/registro-peticion-actions"
+import { usePushNotifications } from "@/app/hooks/usePushNotifications"
 
 // --------- CIFRADO LOCAL (solo para LocalStorage) ----------
 const SECRET_KEY = "monte-sion-peticion"
@@ -102,6 +103,8 @@ export default function RegistroPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<null | { type: "success" | "error"; text: string }>(null)
 
+  usePushNotifications("admin")
+
   const {
     register,
     handleSubmit,
@@ -175,9 +178,9 @@ export default function RegistroPage() {
         telefono: data.telefono ?? "",
       }
 
-const res = await crearRegistro(payload)
-console.log("RESPUESTA SERVER:", res)
-if (!res?.ok) throw new Error(res?.debug || "Error desconocido")
+  const res = await crearRegistro(payload)
+  console.log("RESPUESTA SERVER:", res)
+  if (!res?.ok) throw new Error(res?.debug || "Error desconocido")
 
       clearProgress()
 
@@ -185,10 +188,11 @@ if (!res?.ok) throw new Error(res?.debug || "Error desconocido")
         type: "success",
         text: "¡Hemos recibido tu petición! Estamos orando por ti. Proverbios 3:5-6",
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Ocurrió un error al enviar."
       setMessage({
         type: "error",
-        text: err?.message || "Ocurrió un error al enviar.",
+        text: message,
       })
     } finally {
       setLoading(false)

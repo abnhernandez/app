@@ -16,10 +16,8 @@ export function BarradeNavegacion() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
     let _mounted = true;
     async function fetchUser() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -117,7 +115,7 @@ export function BarradeNavegacion() {
 
         {/* Auth Buttons / Username */}
         <div className="hidden md:flex items-center gap-4 relative">
-          {mounted ? (
+          {isAuthenticated !== null ? (
             isAuthenticated ? (
               <>
                 <button

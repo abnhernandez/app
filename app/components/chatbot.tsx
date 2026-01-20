@@ -23,14 +23,15 @@ export default function ChatBot() {
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
-  const [phraseIndex, setPhraseIndex] = useState(0)
+  const [phraseIndex, setPhraseIndex] = useState(() =>
+    Math.floor(Math.random() * WELCOME_PHRASES.length)
+  )
+  const [hasStarted, setHasStarted] = useState(false)
 
   const assistantBuffer = useRef("")
   const framePending = useRef(false)
-  const hasStarted = useRef(false)
 
   useEffect(() => {
-    setPhraseIndex(Math.floor(Math.random() * WELCOME_PHRASES.length))
     const id = setInterval(() => {
       setPhraseIndex(i => (i + 1) % WELCOME_PHRASES.length)
     }, 3500)
@@ -63,7 +64,7 @@ export default function ChatBot() {
     setLoading(true)
 
     assistantBuffer.current = ""
-    hasStarted.current = false
+    setHasStarted(false)
 
     setMessages(prev => [
       ...prev,
@@ -91,7 +92,7 @@ export default function ChatBot() {
             const delta = chunk.choices[0]?.delta?.content
             if (!delta) continue
 
-            hasStarted.current = true
+            setHasStarted(true)
             assistantBuffer.current += delta
             flushAssistant()
           }
@@ -154,7 +155,7 @@ export default function ChatBot() {
               {loading &&
                 msg.role === "assistant" &&
                 i === messages.length - 1 &&
-                hasStarted.current && (
+                hasStarted && (
                   <span className="inline-block ml-1 animate-pulse">▍</span>
                 )}
             </div>

@@ -10,11 +10,6 @@ const DESTINO = {
 
 export function RutaTemplo() {
   const [loading, setLoading] = useState(false)
-  const [info, setInfo] = useState<{
-    lat: number
-    lng: number
-    accuracy: number
-  } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const guardarUbicacion = () => {
@@ -40,12 +35,6 @@ export function RutaTemplo() {
         await guardarUbicacionUsuario({
           userLat: latitude,
           userLng: longitude,
-        })
-
-        setInfo({
-          lat: latitude,
-          lng: longitude,
-          accuracy,
         })
 
         setLoading(false)

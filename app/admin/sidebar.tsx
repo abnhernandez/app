@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import {
   LayoutDashboard,
   Bell,
@@ -26,16 +26,12 @@ export default function Sidebar({ role }: Props) {
   /* =====================
      STATE
   ===================== */
-  const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-
-  /* =====================
-     PERSIST COLLAPSE
-  ===================== */
-  useEffect(() => {
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false
     const saved = localStorage.getItem("sidebar:collapsed")
-    if (saved) setCollapsed(saved === "true")
-  }, [])
+    return saved === "true"
+  })
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     localStorage.setItem("sidebar:collapsed", String(collapsed))
@@ -55,48 +51,6 @@ export default function Sidebar({ role }: Props) {
     return () => window.removeEventListener("keydown", onKey)
   }, [])
 
-  /* =====================
-     ITEM
-  ===================== */
-  const Item = ({
-    href,
-    label,
-    icon,
-  }: {
-    href: string
-    label: string
-    icon: React.ReactNode
-  }) => {
-    const active = pathname === href
-
-    return (
-      <Link
-        href={href}
-        title={collapsed ? label : undefined}
-        onClick={() => setMobileOpen(false)}
-        className={`
-          group relative flex items-center gap-3 px-3 py-2 rounded-md
-          transition-all duration-200
-          ${active ? "font-semibold opacity-100" : "opacity-70 hover:opacity-100"}
-        `}
-      >
-        {icon}
-
-        {!collapsed && <span>{label}</span>}
-
-        {/* Tooltip */}
-        {collapsed && (
-          <span className="
-            absolute left-full ml-3 px-2 py-1 text-xs rounded-md
-            opacity-0 group-hover:opacity-100 pointer-events-none
-            whitespace-nowrap shadow
-          ">
-            {label}
-          </span>
-        )}
-      </Link>
-    )
-  }
 
   /* =====================
      SIDEBAR CONTENT
@@ -139,9 +93,30 @@ export default function Sidebar({ role }: Props) {
         )}
 
         <div className="space-y-1">
-          <Item href="/dashboard" label="Dashboard" icon={<LayoutDashboard size={18} />} />
-          <Item href="/peticiones" label="Peticiones" icon={<ClipboardList size={18} />} />
-          <Item href="/avisos" label="Avisos" icon={<Bell size={18} />} />
+          <SidebarItem
+            href="/dashboard"
+            label="Dashboard"
+            icon={<LayoutDashboard size={18} />}
+            active={pathname === "/dashboard"}
+            collapsed={collapsed}
+            onSelect={() => setMobileOpen(false)}
+          />
+          <SidebarItem
+            href="/peticiones"
+            label="Peticiones"
+            icon={<ClipboardList size={18} />}
+            active={pathname === "/peticiones"}
+            collapsed={collapsed}
+            onSelect={() => setMobileOpen(false)}
+          />
+          <SidebarItem
+            href="/avisos"
+            label="Avisos"
+            icon={<Bell size={18} />}
+            active={pathname === "/avisos"}
+            collapsed={collapsed}
+            onSelect={() => setMobileOpen(false)}
+          />
         </div>
 
         {/* Biblia */}
@@ -153,16 +128,22 @@ export default function Sidebar({ role }: Props) {
 
         <div className="space-y-1">
           {role === "admin" ? (
-            <Item
+            <SidebarItem
               href="/admin/bible"
               label="Biblia (Admin)"
               icon={<BookOpen size={18} />}
+              active={pathname === "/admin/bible"}
+              collapsed={collapsed}
+              onSelect={() => setMobileOpen(false)}
             />
           ) : (
-            <Item
+            <SidebarItem
               href="/bible"
               label="Biblia"
               icon={<BookOpen size={18} />}
+              active={pathname === "/bible"}
+              collapsed={collapsed}
+              onSelect={() => setMobileOpen(false)}
             />
           )}
         </div>
@@ -177,10 +158,38 @@ export default function Sidebar({ role }: Props) {
             )}
 
             <div className="space-y-1">
-              <Item href="/admin" label="Panel Admin" icon={<Shield size={18} />} />
-              <Item href="/admin/users" label="Usuarios" icon={<Users size={18} />} />
-              <Item href="/admin/avisos" label="Publicar Avisos" icon={<Megaphone size={18} />} />
-              <Item href="/admin/config" label="Configuración" icon={<Settings size={18} />} />
+              <SidebarItem
+                href="/admin"
+                label="Panel Admin"
+                icon={<Shield size={18} />}
+                active={pathname === "/admin"}
+                collapsed={collapsed}
+                onSelect={() => setMobileOpen(false)}
+              />
+              <SidebarItem
+                href="/admin/users"
+                label="Usuarios"
+                icon={<Users size={18} />}
+                active={pathname === "/admin/users"}
+                collapsed={collapsed}
+                onSelect={() => setMobileOpen(false)}
+              />
+              <SidebarItem
+                href="/admin/avisos"
+                label="Publicar Avisos"
+                icon={<Megaphone size={18} />}
+                active={pathname === "/admin/avisos"}
+                collapsed={collapsed}
+                onSelect={() => setMobileOpen(false)}
+              />
+              <SidebarItem
+                href="/admin/config"
+                label="Configuración"
+                icon={<Settings size={18} />}
+                active={pathname === "/admin/config"}
+                collapsed={collapsed}
+                onSelect={() => setMobileOpen(false)}
+              />
             </div>
           </>
         )}
@@ -230,5 +239,48 @@ export default function Sidebar({ role }: Props) {
         </div>
       )}
     </>
+  )
+}
+
+function SidebarItem({
+  href,
+  label,
+  icon,
+  active,
+  collapsed,
+  onSelect,
+}: {
+  href: string
+  label: string
+  icon: ReactNode
+  active: boolean
+  collapsed: boolean
+  onSelect: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      title={collapsed ? label : undefined}
+      onClick={onSelect}
+      className={`
+        group relative flex items-center gap-3 px-3 py-2 rounded-md
+        transition-all duration-200
+        ${active ? "font-semibold opacity-100" : "opacity-70 hover:opacity-100"}
+      `}
+    >
+      {icon}
+
+      {!collapsed && <span>{label}</span>}
+
+      {collapsed && (
+        <span className="
+          absolute left-full ml-3 px-2 py-1 text-xs rounded-md
+          opacity-0 group-hover:opacity-100 pointer-events-none
+          whitespace-nowrap shadow
+        ">
+          {label}
+        </span>
+      )}
+    </Link>
   )
 }

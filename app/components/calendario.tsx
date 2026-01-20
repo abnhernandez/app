@@ -67,7 +67,7 @@ export default function CalendarioSemanal({
   categoria = "GENERAL",
 }: Props) {
   const [mostrarPasados, setMostrarPasados] = useState(false);
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
 
   const visibles = useMemo(
     () =>

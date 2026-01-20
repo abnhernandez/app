@@ -12,7 +12,7 @@ export default function DeleteAccountButton() {
     try {
       await deleteAccount()
       window.location.href = "/"
-    } catch (err) {
+    } catch {
       alert("Error al eliminar la cuenta")
     }
   }

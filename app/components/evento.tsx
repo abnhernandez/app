@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 type TagVariant = "primary" | "warning" | "default";
 
@@ -66,9 +67,11 @@ export default function Evento({
         {/* Avatar */}
         <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-border bg-muted">
           {avatarUrl && (
-            <img
+            <Image
               src={avatarUrl}
               alt=""
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
             />
           )}

@@ -5,7 +5,7 @@ import nodemailer from "nodemailer"
 import { rateLimit } from "@/lib/rate-limit"
 import { headers } from "next/headers"
 import crypto from "crypto"
-import { createNotification } from "@/lib/notifications"
+import { createNotificationForAdmins } from "@/lib/notifications"
 
 type RegistroData = {
   nombre: string
@@ -167,8 +167,7 @@ export async function crearRegistro(data: RegistroData) {
       throw new Error("Error al guardar la petición")
     }
 
-    await createNotification({
-      userId: "admin",
+    await createNotificationForAdmins({
       title: "Nueva petición recibida",
       message: "Se ha enviado una nueva petición de oración",
       tone: "attention",
@@ -193,11 +192,12 @@ export async function crearRegistro(data: RegistroData) {
     }
 
     return { ok: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("🔥 ERROR REAL:", err)
+    const message = err instanceof Error ? err.message : String(err)
     return {
       ok: false,
-      debug: err?.message || String(err),
+      debug: message,
     }
   }
 }

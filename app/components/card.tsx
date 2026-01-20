@@ -1,5 +1,5 @@
 import React from "react";
-// Si usas Next.js:
+import Image from "next/image";
 import Link from "next/link";
 // Si usas React Router, reemplaza lo anterior por:
 // import { useNavigate } from "react-router-dom";
@@ -43,9 +43,11 @@ export default function Card({
     >
       <div className="w-full h-40 sm:h-48 bg-gradient-to-br from-teal-400 to-teal-500 relative">
         {typeof image === "string" ? (
-          <img
+          <Image
             src={image}
             alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, 400px"
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (

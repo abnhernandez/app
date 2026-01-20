@@ -13,7 +13,7 @@ import {
 
 /* ================= TYPES ================= */
 
-type Peticion = {
+export type Peticion = {
   id: string
   nombre?: string | null
   apellido?: string | null

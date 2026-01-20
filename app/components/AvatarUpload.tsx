@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import Image from "next/image"
 import { Pencil } from "lucide-react"
 import { uploadAvatar } from "@/lib/avatar-actions"
 
@@ -51,9 +52,11 @@ export default function AvatarUpload({
           className="relative h-28 w-28 rounded-full overflow-hidden border bg-black/5 flex items-center justify-center"
         >
           {avatarUrl ? (
-            <img
+            <Image
               src={avatarUrl}
               alt="Avatar"
+              width={112}
+              height={112}
               className="h-full w-full object-cover"
             />
           ) : (
@@ -91,9 +94,11 @@ export default function AvatarUpload({
           onClick={() => setPreviewOpen(false)}
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
         >
-          <img
+          <Image
             src={avatarUrl}
             alt="Avatar preview"
+            width={320}
+            height={320}
             className="max-h-[80vh] max-w-[80vw] rounded-full"
           />
         </div>

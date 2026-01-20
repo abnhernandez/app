@@ -10,14 +10,14 @@ import crypto from "crypto"
 /* ===============================
    CLIENTES
 ================================ */
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("SERVICE ROLE KEY NO CARGADA")
 }
+
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL!, // ❗ NO NEXT_PUBLIC en server
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -40,18 +40,31 @@ const signHMAC = (data: string) =>
 function verifyHMAC(cipher: string, hmac: string) {
   const expected = Buffer.from(signHMAC(cipher), "hex")
   const received = Buffer.from(hmac, "hex")
-  if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
+
+  if (
+    expected.length !== received.length ||
+    !crypto.timingSafeEqual(expected, received)
+  ) {
     throw new Error("Integridad comprometida")
   }
 }
 
 function decryptAES(cipherHex: string, ivHex: string, tagHex: string) {
-  const decipher = crypto.createDecipheriv("aes-256-gcm", AES_KEY, Buffer.from(ivHex, "hex"))
-  decipher.setAuthTag(Buffer.from(tagHex, "hex"))
-  return Buffer.concat([
-    decipher.update(Buffer.from(cipherHex, "hex")),
-    decipher.final(),
-  ]).toString("utf8")
+  try {
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      AES_KEY,
+      Buffer.from(ivHex, "hex")
+    )
+    decipher.setAuthTag(Buffer.from(tagHex, "hex"))
+
+    return Buffer.concat([
+      decipher.update(Buffer.from(cipherHex, "hex")),
+      decipher.final(),
+    ]).toString("utf8")
+  } catch {
+    throw new Error("Error al descifrar la petición")
+  }
 }
 
 /* ===============================
@@ -70,16 +83,25 @@ export type EstadoPeticion =
 ================================ */
 async function assertAdmin() {
   const supabase = await getSupabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("No autenticado")
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("No autenticado")
+  }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .single()
+    .maybeSingle()
 
-  if (error || !["admin", "leader"].includes(data?.role)) {
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  if (!data || !["admin", "leader"].includes(data.role)) {
     throw new Error("No autorizado")
   }
 
@@ -87,7 +109,7 @@ async function assertAdmin() {
 }
 
 /* ===============================
-   CREAR PETICIÓN (CON NOTIFICACIÓN)
+   CREAR PETICIÓN
 ================================ */
 export async function crearPeticion(data: {
   peticion_cipher: string
@@ -101,7 +123,9 @@ export async function crearPeticion(data: {
     estado: "Recibida",
   })
 
-  if (error) throw error
+  if (error) {
+    throw new Error(error.message)
+  }
 
   await createNotification({
     userId: "admin",
@@ -112,19 +136,26 @@ export async function crearPeticion(data: {
 }
 
 /* ===============================
-   PETICIONES
+   OBTENER PETICIONES
 ================================ */
 export async function getPeticiones() {
   await assertAdmin()
+
   const { data, error } = await supabaseAdmin
     .from("registro")
     .select("*")
     .order("created_at", { ascending: false })
 
-  if (error) throw error
-  return data
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data ?? []
 }
 
+/* ===============================
+   DESCIFRAR PETICIÓN (🔥 FIX CLAVE)
+================================ */
 export async function getPeticionDescifrada(id: string) {
   await assertAdmin()
 
@@ -132,49 +163,75 @@ export async function getPeticionDescifrada(id: string) {
     .from("registro")
     .select("peticion_cipher, peticion_iv, peticion_tag, peticion_hmac")
     .eq("id", id)
-    .single()
+    .maybeSingle() // 👈 CLAVE
 
-  if (error || !data) throw error
+  if (error) {
+    console.error("getPeticionDescifrada:", error)
+    throw new Error(error.message)
+  }
+
+  if (!data) {
+    throw new Error("Petición no encontrada")
+  }
 
   verifyHMAC(data.peticion_cipher, data.peticion_hmac)
 
-  return decryptAES(data.peticion_cipher, data.peticion_iv, data.peticion_tag)
+  return decryptAES(
+    data.peticion_cipher,
+    data.peticion_iv,
+    data.peticion_tag
+  )
 }
 
-export async function updateEstadoPeticion(id: string, nuevoEstado: EstadoPeticion) {
+/* ===============================
+   ACTUALIZAR ESTADO
+================================ */
+export async function updateEstadoPeticion(
+  id: string,
+  nuevoEstado: EstadoPeticion
+) {
   const user = await assertAdmin()
 
   const { data: prev, error: prevError } = await supabaseAdmin
     .from("registro")
     .select("estado, user_id")
     .eq("id", id)
-    .single()
+    .maybeSingle()
 
-  if (prevError || !prev) throw prevError
+  if (prevError) {
+    throw new Error(prevError.message)
+  }
 
-  const estadoAnterior = prev.estado
+  if (!prev) {
+    throw new Error("Petición no encontrada")
+  }
 
   const { error } = await supabaseAdmin
     .from("registro")
     .update({ estado: nuevoEstado })
     .eq("id", id)
 
-  if (error) throw error
+  if (error) {
+    throw new Error(error.message)
+  }
 
   await auditLog({
     actorId: user.id,
     action: "UPDATE_ESTADO_PETICION",
     entity: "registro",
     entityId: id,
-    before: estadoAnterior,
+    before: prev.estado,
     after: nuevoEstado,
   })
 
   await createNotification({
     userId: "admin",
     title: "Estado actualizado",
-    message: `Petición pasó de "${estadoAnterior}" a "${nuevoEstado}"`,
-    tone: nuevoEstado === "Resuelta" || nuevoEstado === "Completada" ? "resolved" : "progress",
+    message: `Petición pasó de "${prev.estado}" a "${nuevoEstado}"`,
+    tone:
+      nuevoEstado === "Resuelta" || nuevoEstado === "Completada"
+        ? "resolved"
+        : "progress",
   })
 
   if (prev.user_id) {
@@ -188,6 +245,9 @@ export async function updateEstadoPeticion(id: string, nuevoEstado: EstadoPetici
   }
 }
 
+/* ===============================
+   ELIMINAR PETICIÓN
+================================ */
 export async function deletePeticion(id: string) {
   const user = await assertAdmin()
 
@@ -196,7 +256,9 @@ export async function deletePeticion(id: string) {
     .delete()
     .eq("id", id)
 
-  if (error) throw error
+  if (error) {
+    throw new Error(error.message)
+  }
 
   await auditLog({
     actorId: user.id,
@@ -213,27 +275,43 @@ export async function deletePeticion(id: string) {
   })
 }
 
-export async function generarResumenIA(id: string, textoPeticion: string) {
+/* ===============================
+   RESUMEN IA
+================================ */
+export async function generarResumenIA(
+  id: string,
+  textoPeticion: string
+) {
   const user = await assertAdmin()
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
-      { role: "system", content: "Resume esta petición de oración en una sola frase clara." },
+      {
+        role: "system",
+        content:
+          "Resume esta petición de oración en una sola frase clara.",
+      },
       { role: "user", content: textoPeticion },
     ],
     max_tokens: 60,
   })
 
-  const resumen = completion.choices[0]?.message?.content?.trim()
-  if (!resumen) throw new Error("No se pudo generar el resumen")
+  const resumen =
+    completion.choices[0]?.message?.content?.trim()
+
+  if (!resumen) {
+    throw new Error("No se pudo generar el resumen")
+  }
 
   const { error } = await supabaseAdmin
     .from("registro")
     .update({ resumen_ia: resumen })
     .eq("id", id)
 
-  if (error) throw error
+  if (error) {
+    throw new Error(error.message)
+  }
 
   await auditLog({
     actorId: user.id,
@@ -256,14 +334,18 @@ export async function generarResumenIA(id: string, textoPeticion: string) {
    TEST DIRECTO
 ================================ */
 export async function testNotificacion() {
-  const { error } = await supabaseAdmin.from("notifications").insert({
-    user_id: "admin",
-    title: "TEST",
-    message: "Si esto aparece, ya funciona",
-    tone: "attention",
-    read: false,
-    role: "admin",
-  })
+  const { error } = await supabaseAdmin
+    .from("notifications")
+    .insert({
+      user_id: "admin",
+      title: "TEST",
+      message: "Si esto aparece, ya funciona",
+      tone: "attention",
+      read: false,
+      role: "admin",
+    })
 
-  if (error) throw error
+  if (error) {
+    throw new Error(error.message)
+  }
 }

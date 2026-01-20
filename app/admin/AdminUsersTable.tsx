@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { updateUserRole, deleteUser } from "@/lib/admin-actions"
 import {
   Shield,
@@ -14,7 +14,7 @@ import {
 ===================== */
 type Role = "admin" | "user"
 
-type UserItem = {
+export type UserItem = {
   id: string
   name: string | null
   email: string
@@ -224,7 +224,7 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
 
         <select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as any)}
+          onChange={(e) => setRoleFilter(e.target.value as "all" | Role)}
           className="rounded-xl px-3 py-2 text-sm dark:bg-neutral-900"
         >
           <option value="all">Todos</option>

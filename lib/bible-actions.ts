@@ -1,7 +1,7 @@
 "use server"
-
+ 
 export async function getBiblePassage({
-  bibleId = "111",
+  bibleId = "128",
   passage = "JHN.3.16",
 }: {
   bibleId?: string
@@ -28,8 +28,8 @@ export async function getBiblePassage({
 
   const data = await res.json()
 
-  const blocks = data?.data?.content ?? []
-  const text = blocks.map((b: any) => b.text).join("\n\n")
+  const blocks = (data?.data?.content ?? []) as Array<{ text?: string }>
+  const text = blocks.map((b) => b.text ?? "").join("\n\n")
 
   return {
     reference: data.data.reference,

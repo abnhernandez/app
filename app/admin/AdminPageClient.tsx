@@ -2,22 +2,22 @@
 
 import { useState, useCallback } from "react"
 import Menu from "@/app/components/menu"
-import NotificationCenter from "@/app/components/Notifications"
+import NotificationsClient from "@/app/components/NotificationsClient"
 import AdminUsersTable from "./AdminUsersTable"
 import AdminPeticiones from "./AdminPeticiones"
 import ExportButtons from "./ExportButtons"
+import type { UserItem } from "./AdminUsersTable"
+import type { Peticion } from "./AdminPeticiones"
 
 type Props = {
-  users: any[]
-  peticiones: any[]
-  notifications: any[]
+  users: UserItem[]
+  peticiones: Peticion[]
   unreadCount: number
 }
 
 export default function AdminPageClient({
   users,
   peticiones,
-  notifications,
   unreadCount,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false)
@@ -25,19 +25,16 @@ export default function AdminPageClient({
 
   return (
     <div className="flex min-h-screen">
-      <Menu collapsed={collapsed} onToggle={toggleMenu} />
+      <Menu
+        collapsed={collapsed}
+        onToggle={toggleMenu}
+        notificationsCount={unreadCount}
+        showNotifications
+      />
 
       <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl sm:text-3xl font-bold">Panel de Administración</h1>
-          <div className="inline-flex items-center gap-2">
-            <span className="text-sm font-medium">Notificaciones</span>
-            {unreadCount > 0 && (
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                {unreadCount}
-              </span>
-            )}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -47,9 +44,16 @@ export default function AdminPageClient({
             <ExportButtons />
           </div>
 
-          <div className="xl:col-span-1 sticky top-4">
-            <h2 className="mb-3 text-lg font-semibold">Centro de notificaciones</h2>
-            <NotificationCenter items={notifications} />
+          <div className="xl:col-span-1 xl:sticky xl:top-4">
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="text-lg font-semibold">Centro de notificaciones</h2>
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            <NotificationsClient />
           </div>
         </div>
       </div>
