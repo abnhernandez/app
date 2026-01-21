@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 
-const protectedRoutes = ["/dashboard", "/account"]
+const protectedRoutes = ["/dashboard", "/account", "/admin"]
 const adminRoutes = ["/admin"]
 
 export async function middleware(request: NextRequest) {
@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Evitar login si ya está logueado
-  if (user && (pathname === "/login" || pathname === "/register")) {
+  if (user && (pathname === "/login" || pathname === "/registro")) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
@@ -71,6 +71,6 @@ export const config = {
     "/account/:path*",
     "/admin/:path*",
     "/login",
-    "/register",
+    "/registro",
   ],
 }

@@ -25,12 +25,13 @@ const supabase = createBrowserClient(
 
 /* -------------------- OAuth -------------------- */
 const handleOAuthLogin = async (provider: OAuthProvider) => {
-  await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo: `${location.origin}/auth/callback`,
     },
   })
+  return error
 }
 
 /* -------------------- UI -------------------- */
@@ -51,6 +52,7 @@ const oauthButtonClass = `
 export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
   const {
     register,
@@ -67,8 +69,23 @@ export default function LoginForm() {
     try {
       const result = await loginAction(data)
       if (result?.error) setError(result.error)
+    } catch {
+      setError("Error de servidor")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const onOAuthClick = async (provider: OAuthProvider) => {
+    setError(null)
+    setOauthLoading(provider)
+    try {
+      const oauthError = await handleOAuthLogin(provider)
+      if (oauthError) setError(oauthError.message)
+    } catch {
+      setError("Error de servidor")
+    } finally {
+      setOauthLoading(null)
     }
   }
 
@@ -80,7 +97,7 @@ export default function LoginForm() {
       >
         <h2 className="text-center text-xl font-bold">Login</h2>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-600 text-sm" role="alert">{error}</p>}
 
         <input
           {...register("email")}
@@ -111,32 +128,49 @@ export default function LoginForm() {
         >
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
+        <div className="flex items-center justify-between text-sm">
+          <a href="/registro" className="text-emerald-700 hover:underline">
+            Crear cuenta
+          </a>
+          <a href="/forgot-password" className="text-emerald-700 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
       </form>
 
       {/* OAuth */}
       <div className="w-full max-w-md space-y-3">
         <button
-          onClick={() => handleOAuthLogin("github")}
+          onClick={() => onOAuthClick("github")}
           className={oauthButtonClass}
+          disabled={oauthLoading !== null}
         >
           <Github className="w-5 h-5" />
-          <span>Continuar con GitHub</span>
+          <span>
+            {oauthLoading === "github" ? "Conectando..." : "Continuar con GitHub"}
+          </span>
         </button>
 
         <button
-          onClick={() => handleOAuthLogin("notion")}
+          onClick={() => onOAuthClick("notion")}
           className={oauthButtonClass}
+          disabled={oauthLoading !== null}
         >
           <Notebook className="w-5 h-5" />
-          <span>Continuar con Notion</span>
+          <span>
+            {oauthLoading === "notion" ? "Conectando..." : "Continuar con Notion"}
+          </span>
         </button>
 
         <button
-          onClick={() => handleOAuthLogin("spotify")}
+          onClick={() => onOAuthClick("spotify")}
           className={oauthButtonClass}
+          disabled={oauthLoading !== null}
         >
           <Music className="w-5 h-5" />
-          <span>Continuar con Spotify</span>
+          <span>
+            {oauthLoading === "spotify" ? "Conectando..." : "Continuar con Spotify"}
+          </span>
         </button>
       </div>
     </div>

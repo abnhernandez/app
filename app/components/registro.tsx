@@ -40,6 +40,7 @@ export default function RegistroIOSAuth() {
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [pwdFeedback, setPwdFeedback] = useState<string | null>(null)
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
 
   /* ---- Phone OTP ---- */
   const [phone, setPhone] = useState("")
@@ -57,6 +58,7 @@ export default function RegistroIOSAuth() {
   const onSubmit = async (data: FormValues) => {
     setLoading(true)
     setError(null)
+    setMessage(null)
 
     try {
       const result = await registerAction(data)
@@ -65,6 +67,8 @@ export default function RegistroIOSAuth() {
         return
       }
       setMessage("Registro completado. Revisa tu correo.")
+    } catch {
+      setError("Error de servidor")
     } finally {
       setLoading(false)
     }
@@ -85,6 +89,7 @@ export default function RegistroIOSAuth() {
   const sendOTP = async () => {
     setLoading(true)
     setError(null)
+    setMessage(null)
 
     const { error } = await supabase.auth.signInWithOtp({ phone })
 
@@ -100,6 +105,7 @@ export default function RegistroIOSAuth() {
   const verifyOTP = async () => {
     setLoading(true)
     setError(null)
+    setMessage(null)
 
     const { error } = await supabase.auth.verifyOtp({
       phone,
@@ -118,12 +124,28 @@ export default function RegistroIOSAuth() {
 
   /* -------------------- OAuth -------------------- */
   const handleOAuthRegister = async (provider: OAuthProvider) => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${location.origin}/auth/callback`,
       },
     })
+    return error
+  }
+
+  const onOAuthClick = async (provider: OAuthProvider) => {
+    setError(null)
+    setMessage(null)
+    setOauthLoading(provider)
+
+    try {
+      const oauthError = await handleOAuthRegister(provider)
+      if (oauthError) setError(oauthError.message)
+    } catch {
+      setError("Error de servidor")
+    } finally {
+      setOauthLoading(null)
+    }
   }
 
   return (
@@ -142,24 +164,35 @@ export default function RegistroIOSAuth() {
               Crear cuenta
             </h1>
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            {message && <p className="text-emerald-400 text-sm">{message}</p>}
+            {error && <p className="text-red-400 text-sm" role="alert">{error}</p>}
+            {message && <p className="text-emerald-400 text-sm" role="status">{message}</p>}
 
             {/* Email */}
             <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-3">
-              <input {...register("name")} placeholder="Nombre" className={inputClass} />
+              <input
+                {...register("name")}
+                placeholder="Nombre"
+                className={inputClass}
+                disabled={loading}
+              />
               {errors.name && <p className="text-red-400 text-sm">{errors.name.message}</p>}
 
-              <input {...register("email")} placeholder="Correo" className={inputClass} />
+              <input
+                {...register("email")}
+                placeholder="Correo"
+                className={inputClass}
+                disabled={loading}
+              />
               {errors.email && <p className="text-red-400 text-sm">{errors.email.message}</p>}
 
               <input
                 {...register("password", {
-                  onChange: e => handlePasswordChange(e.target.value),
+                  onChange: (e) => handlePasswordChange(e.target.value),
                 })}
                 type="password"
                 placeholder="Contraseña"
                 className={inputClass}
+                disabled={loading}
               />
               {pwdFeedback && <p className="text-emerald-400 text-xs">{pwdFeedback}</p>}
 
@@ -168,8 +201,12 @@ export default function RegistroIOSAuth() {
                 disabled={loading}
                 className="w-full rounded-2xl bg-emerald-600 py-3 font-semibold text-black"
               >
-                Registrarme con Email
+                {loading ? "Registrando..." : "Registrarme con Email"}
               </button>
+
+              <a href="/login" className="text-sm text-emerald-300 hover:underline block text-center">
+                ¿Ya tienes cuenta? Inicia sesión
+              </a>
             </form>
 
             {/* Phone */}
@@ -177,37 +214,41 @@ export default function RegistroIOSAuth() {
               <input
                 placeholder="+52 9511234567"
                 value={phone}
-                onChange={e => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value)}
                 className={inputClass}
+                disabled={loading}
               />
               <button
                 onClick={sendOTP}
                 disabled={loading}
                 className="w-full rounded-2xl bg-white/10 py-3 text-white"
               >
-                Continuar con Teléfono
+                {loading ? "Enviando código..." : "Continuar con Teléfono"}
               </button>
             </div>
 
             {/* OAuth */}
             <div className="mt-6 space-y-3">
               <button
-                onClick={() => handleOAuthRegister("github")}
+                onClick={() => onOAuthClick("github")}
                 className="w-full rounded-2xl bg-white/10 py-3 text-white flex justify-center gap-3"
+                disabled={oauthLoading !== null || loading}
               >
-                <GithubIcon /> GitHub
+                <GithubIcon /> {oauthLoading === "github" ? "Conectando..." : "GitHub"}
               </button>
               <button
-                onClick={() => handleOAuthRegister("notion")}
+                onClick={() => onOAuthClick("notion")}
                 className="w-full rounded-2xl bg-white/10 py-3 text-white flex justify-center gap-3"
+                disabled={oauthLoading !== null || loading}
               >
-                <Notebook /> Notion
+                <Notebook /> {oauthLoading === "notion" ? "Conectando..." : "Notion"}
               </button>
               <button
-                onClick={() => handleOAuthRegister("spotify")}
+                onClick={() => onOAuthClick("spotify")}
                 className="w-full rounded-2xl bg-white/10 py-3 text-white flex justify-center gap-3"
+                disabled={oauthLoading !== null || loading}
               >
-                <Music /> Spotify
+                <Music /> {oauthLoading === "spotify" ? "Conectando..." : "Spotify"}
               </button>
             </div>
           </motion.div>
@@ -226,11 +267,15 @@ export default function RegistroIOSAuth() {
               Código SMS
             </h2>
 
+            {error && <p className="text-red-400 text-sm" role="alert">{error}</p>}
+            {message && <p className="text-emerald-400 text-sm" role="status">{message}</p>}
+
             <input
               placeholder="123456"
               value={otp}
-              onChange={e => setOtp(e.target.value)}
+              onChange={(e) => setOtp(e.target.value)}
               className={`${inputClass} mt-6 text-center tracking-widest`}
+              disabled={loading}
             />
 
             <button
@@ -238,7 +283,7 @@ export default function RegistroIOSAuth() {
               disabled={loading}
               className="mt-6 w-full rounded-2xl bg-emerald-600 py-3 font-semibold text-black"
             >
-              Confirmar registro
+              {loading ? "Verificando..." : "Confirmar registro"}
             </button>
           </motion.div>
         )}
