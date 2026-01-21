@@ -61,7 +61,7 @@ export function ReadingPlan() {
           </h2>
           <div className="w-24 h-1 bg-primary mx-auto rounded-full mb-6" />
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Enero 2026 - Lunes a Viernes, 1 capítulo por dia
+            Enero 2026 - Lunes a Viernes, 1 capítulo por día
           </p>
         </div>
 
