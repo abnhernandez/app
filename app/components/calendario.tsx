@@ -122,8 +122,8 @@ const fetcher = async (): Promise<EventoItem[]> => {
   if (error) throw error;
 
   return (data ?? [])
-    .map((row) => normalizeEvento(row as EventoDbRow))
-    .filter((row): row is EventoItem => Boolean(row));
+    .map((row: EventoDbRow) => normalizeEvento(row))
+    .filter((row: EventoItem | null): row is EventoItem => Boolean(row));
 };
 
 export default function CalendarioSemanal({
@@ -148,7 +148,7 @@ export default function CalendarioSemanal({
       now
         ? mostrarPasados
           ? dataSource
-          : dataSource.filter((e) => !isPastEvent(e, now))
+          : dataSource.filter((e: EventoItem) => !isPastEvent(e, now))
         : dataSource,
     [dataSource, mostrarPasados, now]
   );
