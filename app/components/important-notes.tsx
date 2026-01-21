@@ -8,15 +8,15 @@ export function ImportantNotes() {
     },
     {
       icon: Clock,
-      text: "Las reuniones diarias son de 10 pm a 11 pm CDMX, para mantener un horario fijo y dinamico.",
+      text: "Las reuniones diarias son de 10 pm a 11 pm CDMX, para mantener un horario fijo y dinámico.",
     },
     {
       icon: BookMarked,
-      text: "El plan de lectura se organiza por dia, no todo de golpe, para que cada miembro pueda seguirlo sin saturarse.",
+      text: "El plan de lectura se organiza por día, no todo de golpe, para que cada miembro pueda seguirlo sin saturarse.",
     },
     {
       icon: AlertCircle,
-      text: "Se fomenta la constancia en la oracion y el estudio biblico diario.",
+      text: "Se fomenta la constancia en la oración y el estudio bíblico diario.",
     },
   ];
 

@@ -55,7 +55,7 @@ actions.push({
           </h2>
           <div className="w-24 h-1 bg-primary mx-auto rounded-full mb-6" />
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Únete a nuestra comunidad de oracion y estudio biblico
+            Únete a nuestra comunidad de oración y estudio bíblico
           </p>
         </div>
 

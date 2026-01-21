@@ -19,15 +19,15 @@ export function Hero() {
         </div>
 
         <h1 className="font-serif text-5xl md:text-7xl font-bold text-foreground mb-6 text-balance leading-tight">
-          Grupo de Estudio Biblico y Oracion
+          Grupo de Estudio Bíblico y Oración
         </h1>
 
         <p className="text-xl md:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto text-pretty">
-          Mantenernos siempre constantes en la oracion.
+          Mantenernos siempre constantes en la oración.
         </p>
 
         <blockquote className="text-lg text-primary/80 italic mb-12 max-w-xl mx-auto">
-          {'"Perseverad en la oracion, velando en ella con accion de gracias"'}
+          {'"Perseverad en la oración, velando en ella con acción de gracias"'}
         </blockquote>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

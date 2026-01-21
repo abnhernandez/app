@@ -4,13 +4,13 @@ export function Objective() {
   const features = [
     {
       icon: Flame,
-      title: "Constancia en la Oracion",
+      title: "Constancia en la Oración",
       description:
-        "Cultivamos el habito de la oracion diaria, manteniéndonos firmes en nuestra fe.",
+        "Cultivamos el hábito de la oración diaria, manteniéndonos firmes en nuestra fe.",
     },
     {
       icon: Target,
-      title: "Estudio Biblico",
+      title: "Estudio Bíblico",
       description:
         "Profundizamos en las Escrituras a través del Evangelio de San Juan.",
     },
@@ -18,7 +18,7 @@ export function Objective() {
       icon: Users,
       title: "Comunidad de Fe",
       description:
-        "Nos apoyamos mutuamente en oracion, compartiendo peticiones e intenciones.",
+        "Nos apoyamos mutuamente en oración, compartiendo peticiones e intenciones.",
     },
   ];
 

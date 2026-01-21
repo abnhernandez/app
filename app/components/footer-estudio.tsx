@@ -6,7 +6,7 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center">
           <p className="font-serif text-2xl mb-4">
-            Grupo de Estudio Biblico y Oracion
+            Grupo de Estudio Bíblico y Oración
           </p>
           <p className="text-background/70 mb-6 italic">
             {'"Perseverad en la oracion, velando en ella con accion de gracias"'}
