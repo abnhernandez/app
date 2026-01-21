@@ -29,6 +29,14 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
+  const code = request.nextUrl.searchParams.get("code")
+
+  // OAuth callback fallback: if Supabase redirects to / with ?code=
+  if (pathname === "/" && code) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/auth/callback"
+    return NextResponse.redirect(url)
+  }
 
   // 🔐 Rutas protegidas
   if (protectedRoutes.some(r => pathname.startsWith(r)) && !user) {
@@ -58,6 +66,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/account/:path*",
     "/admin/:path*",
