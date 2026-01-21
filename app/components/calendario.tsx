@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
 import Evento from "./evento";
+import { getSupabaseClient } from "@/lib/supabase";
 
 /* =======================
    Tipos
@@ -9,13 +11,38 @@ import Evento from "./evento";
 
 export type EventoItem = {
   id: string;
-  fecha: Date;
+  fecha: string;
   title: string;
   subject: string;
   teacher: string;
   startTime: string;
   endTime: string;
   tags?: string[];
+};
+
+type EventoDbRow = {
+  id?: string | number;
+  fecha?: string;
+  date?: string;
+  dia?: string;
+  day?: string;
+  title?: string;
+  titulo?: string;
+  nombre?: string;
+  subject?: string;
+  materia?: string;
+  tema?: string;
+  teacher?: string;
+  maestro?: string;
+  profesor?: string;
+  start_time?: string;
+  hora_inicio?: string;
+  inicio?: string;
+  end_time?: string;
+  hora_fin?: string;
+  fin?: string;
+  tags?: string[] | null;
+  etiquetas?: string[] | null;
 };
 
 /* =======================
@@ -32,17 +59,25 @@ const monthYearFormatter = new Intl.DateTimeFormat("es-ES", {
 });
 
 const isPastEvent = (e: EventoItem, now: Date) => {
+  if (!e.endTime) return false;
   const end = new Date(e.fecha);
   const [h, m] = e.endTime.split(":").map(Number);
   end.setHours(h, m, 0, 0);
   return end < now;
 };
 
+const getDateKey = (fecha: string) => {
+  if (!fecha) return "";
+  if (fecha.length >= 10) return fecha.slice(0, 10);
+  return new Date(fecha).toISOString().slice(0, 10);
+};
+
 const groupByDay = (events: EventoItem[]) => {
   const map = new Map<string, EventoItem[]>();
 
   for (const ev of events) {
-    const key = ev.fecha.toISOString().slice(0, 10);
+    const key = getDateKey(ev.fecha);
+    if (!key) continue;
     (map.get(key) ?? map.set(key, []).get(key)!).push(ev);
   }
 
@@ -61,20 +96,61 @@ type Props = {
   categoria?: string;
 };
 
+const normalizeEvento = (row: EventoDbRow): EventoItem | null => {
+  const fecha = row.fecha ?? row.date ?? row.dia ?? row.day ?? "";
+  if (!fecha) return null;
+
+  return {
+    id: String(row.id ?? `${fecha}-${row.title ?? row.titulo ?? "evento"}`),
+    fecha,
+    title: row.title ?? row.titulo ?? row.nombre ?? "Evento",
+    subject: row.subject ?? row.materia ?? row.tema ?? "",
+    teacher: row.teacher ?? row.maestro ?? row.profesor ?? "",
+    startTime: row.start_time ?? row.hora_inicio ?? row.inicio ?? "",
+    endTime: row.end_time ?? row.hora_fin ?? row.fin ?? "",
+    tags: row.tags ?? row.etiquetas ?? [],
+  };
+};
+
+const fetcher = async (): Promise<EventoItem[]> => {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("eventos")
+    .select("*")
+    .order("fecha", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .map((row) => normalizeEvento(row as EventoDbRow))
+    .filter((row): row is EventoItem => Boolean(row));
+};
+
 export default function CalendarioSemanal({
   eventos,
   titulo = "Calendario Semanal",
   categoria = "GENERAL",
 }: Props) {
+  const { data: eventosDb, error, isLoading } = useSWR("eventos", fetcher, {
+    revalidateOnFocus: false,
+  });
   const [mostrarPasados, setMostrarPasados] = useState(false);
-  const now = useMemo(() => new Date(), []);
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
+  const dataSource = eventos ?? eventosDb ?? [];
 
   const visibles = useMemo(
     () =>
-      mostrarPasados
-        ? eventos ?? []
-        : (eventos ?? []).filter((e) => !isPastEvent(e, now)),
-    [eventos, mostrarPasados, now]
+      now
+        ? mostrarPasados
+          ? dataSource
+          : dataSource.filter((e) => !isPastEvent(e, now))
+        : dataSource,
+    [dataSource, mostrarPasados, now]
   );
 
   const grupos = useMemo(() => groupByDay(visibles), [visibles]);
@@ -88,7 +164,7 @@ export default function CalendarioSemanal({
         </h1>
 
         <p className="text-muted-foreground capitalize">
-          {monthYearFormatter.format(now)}
+          {now ? monthYearFormatter.format(now) : "—"}
         </p>
 
         <nav className="mt-4 border-b border-border">
@@ -101,14 +177,24 @@ export default function CalendarioSemanal({
 
       {/* Eventos */}
       <div className="flex flex-col gap-4">
-        {grupos.length === 0 && (
+        {isLoading && (
+          <p className="text-sm text-muted-foreground">Cargando eventos...</p>
+        )}
+
+        {error && !eventosDb && (
+          <p className="text-sm text-muted-foreground">
+            No se pudieron cargar los eventos.
+          </p>
+        )}
+
+        {grupos.length === 0 && !isLoading && (
           <p className="text-sm text-muted-foreground">
             No hay eventos para mostrar.
           </p>
         )}
 
         {grupos.map(({ day, list }) => {
-          const date = new Date(day);
+          const date = new Date(`${day}T00:00:00`);
           const month = monthFormatter.format(date).toUpperCase();
           const dayNum = date.getDate().toString();
 
