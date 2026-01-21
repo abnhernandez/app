@@ -9,9 +9,8 @@ import { createNotificationForAdmins } from "@/lib/notifications"
 
 type RegistroData = {
   nombre: string
-  apellido: string
-  email: string
-  telefono: string
+  email?: string
+  telefono?: string
   anonimo: boolean
 
   peticion_cipher: string
@@ -147,7 +146,7 @@ export async function crearRegistro(data: RegistroData) {
 
     const { error } = await supabase.from("registro").insert({
       nombre: data.anonimo ? null : data.nombre || null,
-      apellido: data.anonimo ? null : data.apellido || null,
+      apellido: null,
 
       email_hash: emailHash,
       telefono_hash: telefonoHash,

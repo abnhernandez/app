@@ -7,6 +7,7 @@ import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/bootstrap.css"
 import * as z from "zod"
 import CryptoJS from "crypto-js"
+import { Mail, Phone, User, MessageSquare, Send } from "lucide-react"
 import { crearRegistro } from "@/lib/registro-peticion-actions"
 import { usePushNotifications } from "@/app/hooks/usePushNotifications"
 
@@ -17,7 +18,6 @@ const STORAGE_KEY = "peticion_oracion_secure"
 // --------- ESQUEMA ----------
 const schema = z.object({
   nombre: z.string().optional(),
-  apellido: z.string().optional(),
   email: z.string().email("Correo inválido").optional(),
   telefono: z.string().min(10, "Teléfono inválido").optional(),
   peticion: z.string().min(1, "Escribe tu petición de oración"),
@@ -25,9 +25,6 @@ const schema = z.object({
 }).superRefine((data, ctx) => {
   if (!data.anonimo) {
     if (!data.nombre) ctx.addIssue({ path: ["nombre"], message: "Nombre requerido", code: "custom" })
-    if (!data.apellido) ctx.addIssue({ path: ["apellido"], message: "Apellido requerido", code: "custom" })
-    if (!data.email) ctx.addIssue({ path: ["email"], message: "Correo requerido", code: "custom" })
-    if (!data.telefono) ctx.addIssue({ path: ["telefono"], message: "Teléfono requerido", code: "custom" })
   }
 })
 
@@ -97,11 +94,13 @@ async function encryptE2EE(text: string) {
 
 // --------- UI ----------
 const commonInputClasses =
-  "w-full px-4 py-3 rounded-xl bg-white dark:bg-white/10 border border-zinc-200 dark:border-white/20 text-black dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-300 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+  "w-full px-4 py-3 rounded-xl bg-white dark:bg-white/10 border border-zinc-200 dark:border-white/20 text-black dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-300 focus:ring-2 focus:ring-zinc-400/60 focus:outline-none"
 
 export default function RegistroPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<null | { type: "success" | "error"; text: string }>(null)
+  const [showEmail, setShowEmail] = useState(false)
+  const [showPhone, setShowPhone] = useState(false)
 
   usePushNotifications("admin")
 
@@ -122,15 +121,27 @@ export default function RegistroPage() {
 
   const anonimo = watch("anonimo")
 
-  useEffect(() => {
-    if (anonimo) {
-      setValue("nombre", undefined)
-      setValue("apellido", undefined)
-      setValue("email", undefined)
-      setValue("telefono", undefined)
-      clearErrors(["nombre", "apellido", "email", "telefono"])
-    }
-  }, [anonimo, setValue, clearErrors])
+  const toggleEmail = () => {
+    setShowEmail((prev) => {
+      const next = !prev
+      if (!next) {
+        setValue("email", undefined)
+        clearErrors("email")
+      }
+      return next
+    })
+  }
+
+  const togglePhone = () => {
+    setShowPhone((prev) => {
+      const next = !prev
+      if (!next) {
+        setValue("telefono", undefined)
+        clearErrors("telefono")
+      }
+      return next
+    })
+  }
 
   // 🔐 Restaurar progreso cifrado
   useEffect(() => {
@@ -158,6 +169,8 @@ export default function RegistroPage() {
   const clearProgress = () => {
     localStorage.removeItem(STORAGE_KEY)
     reset({ anonimo: false, peticion: "" })
+    setShowEmail(false)
+    setShowPhone(false)
   }
 
   const onSubmit = async (data: FormValues) => {
@@ -173,7 +186,6 @@ export default function RegistroPage() {
         ...e2ee,      // texto ya cifrado
         peticion: "", // nunca se envía en claro
         nombre: data.nombre ?? "",
-        apellido: data.apellido ?? "",
         email: data.email ?? "",
         telefono: data.telefono ?? "",
       }
@@ -224,56 +236,114 @@ export default function RegistroPage() {
 
           {!anonimo && (
             <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <input {...register("nombre")} placeholder="Nombre" className={commonInputClasses} />
-                  {errors.nombre && <p className="text-red-500 text-xs">{errors.nombre.message}</p>}
-                </div>
-                <div>
-                  <input {...register("apellido")} placeholder="Apellido" className={commonInputClasses} />
-                  {errors.apellido && <p className="text-red-500 text-xs">{errors.apellido.message}</p>}
-                </div>
-              </div>
-
               <div>
-                <input {...register("email")} placeholder="Correo electrónico" className={commonInputClasses} />
-                {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
-              </div>
-
-              <div>
-                <Controller
-                  name="telefono"
-                  control={control}
-                  render={({ field }) => (
-                    <PhoneInput
-                      country="mx"
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      inputClass="!w-full !h-12 !rounded-xl"
-                    />
-                  )}
-                />
-                {errors.telefono && <p className="text-red-500 text-xs">{errors.telefono.message}</p>}
+                <div className="flex items-center gap-3">
+                  <User size={20} className="text-zinc-500" />
+                  <input
+                    {...register("nombre")}
+                    placeholder="Nombre"
+                    className={commonInputClasses}
+                  />
+                </div>
+                {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>}
               </div>
             </>
           )}
 
           <div>
-            <textarea
-              {...register("peticion")}
-              placeholder="Escribe tu petición de oración"
-              rows={4}
-              className={`${commonInputClasses} resize-none`}
-            />
-            {errors.peticion && <p className="text-red-500 text-xs">{errors.peticion.message}</p>}
+            <div className="flex items-start gap-3">
+              <MessageSquare size={20} className="text-zinc-500 mt-3" />
+              <textarea
+                {...register("peticion")}
+                placeholder="Escribe tu petición de oración"
+                rows={4}
+                className={`${commonInputClasses} resize-none`}
+              />
+            </div>
+            {errors.peticion && <p className="text-red-500 text-xs mt-1">{errors.peticion.message}</p>}
           </div>
+
+          {!anonimo && (
+            <div className="space-y-3">
+              <div className="text-xs text-zinc-500">
+                Agrega un medio de contacto (Opcional)
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={toggleEmail}
+                  className={`h-12 rounded-xl border transition flex items-center justify-center gap-2 ${
+                    showEmail
+                      ? "border-zinc-400/70 bg-zinc-100 text-zinc-700 dark:border-white/30 dark:bg-white/10 dark:text-white"
+                      : "border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-white/20 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <Mail size={18} />
+                  Correo
+                </button>
+
+                <button
+                  type="button"
+                  onClick={togglePhone}
+                  className={`h-12 rounded-xl border transition flex items-center justify-center gap-2 ${
+                    showPhone
+                      ? "border-zinc-400/70 bg-zinc-100 text-zinc-700 dark:border-white/30 dark:bg-white/10 dark:text-white"
+                      : "border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-white/20 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <Phone size={18} />
+                  Teléfono
+                </button>
+              </div>
+
+              {showEmail && (
+                <div>
+                  <input
+                    {...register("email")}
+                    placeholder="tu@correo.com"
+                    className={commonInputClasses}
+                  />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                </div>
+              )}
+
+              {showPhone && (
+                <div>
+                  <Controller
+                    name="telefono"
+                    control={control}
+                    render={({ field }) => (
+                      <PhoneInput
+                        country="mx"
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        inputClass="!w-full !h-12 !rounded-xl !border-zinc-200 dark:!border-white/20 !focus:ring-0 !focus:outline-none !shadow-none"
+                      />
+                    )}
+                  />
+                  {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono.message}</p>}
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-black text-white font-bold disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-black text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading ? "Enviando…" : anonimo ? "Enviar anónimamente" : "Enviar petición"}
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                Enviando…
+              </>
+            ) : (
+              <>
+                <Send size={18} />
+                {anonimo ? "Enviar anónimamente" : "Enviar petición"}
+              </>
+            )}
           </button>
 
           <div className="flex justify-end">

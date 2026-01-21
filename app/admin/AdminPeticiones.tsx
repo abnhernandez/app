@@ -16,7 +16,6 @@ import {
 export type Peticion = {
   id: string
   nombre?: string | null
-  apellido?: string | null
   email?: string | null
   estado?: EstadoPeticion | null
   resumen_ia?: string | null
@@ -73,8 +72,7 @@ function PeticionModal({
   }
 
   const fullName =
-    [peticion.nombre, peticion.apellido].filter(Boolean).join(" ") ||
-    "Petición anónima"
+    peticion.nombre?.trim() || "Petición anónima"
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
@@ -180,9 +178,7 @@ export default function AdminPeticiones({ data = [] }: { data?: Peticion[] }) {
     if (!q) return items
 
     return items.filter((p) =>
-      `${p.nombre ?? ""} ${p.apellido ?? ""} ${p.email ?? ""}`
-        .toLowerCase()
-        .includes(q)
+      `${p.nombre ?? ""} ${p.email ?? ""}`.toLowerCase().includes(q)
     )
   }, [items, search])
 
@@ -209,8 +205,7 @@ export default function AdminPeticiones({ data = [] }: { data?: Peticion[] }) {
 
       {filtered.map((p) => {
         const fullName =
-          [p.nombre, p.apellido].filter(Boolean).join(" ") ||
-          "Petición anónima"
+          p.nombre?.trim() || "Petición anónima"
 
         return (
           <div
