@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { usePathname } from "next/navigation";
 
 /* =======================
    Tipos
@@ -44,14 +45,15 @@ export default function Menu({
   notificationsCount,
   showNotifications,
 }: MenuProps) {
+  const pathname = usePathname();
   const [showBible, setShowBible] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const bibleIframeRef = React.useRef<HTMLIFrameElement>(null);
 
   const items: MenuItem[] = [
-    { label: "Inicio", icon: <Home size={20} />, active: true },
+    { label: "Inicio", icon: <Home size={20} />, href: "/" },
     { label: "Avisos", icon: <List size={20} />, href: "/avisos" },
-    { label: "Calendario", icon: <Calendar size={20} />, href: "/eventos" },
+    { label: "Eventos", icon: <Calendar size={20} />, href: "/eventos" },
     ...(showNotifications
       ? [
           {
@@ -70,7 +72,7 @@ export default function Menu({
       onClick: () => setShowBible(true),
     },
     {
-      label: "¿Cómo debo orar?",
+      label: "Cómo orar",
       icon: <FileText size={20} />,
       href: "/orar",
     },
@@ -125,12 +127,14 @@ export default function Menu({
             );
           }
 
+          const isActive = item.href ? pathname === item.href : false;
+
           const content = (
             <span
               className={`
                 flex items-center w-full rounded-lg transition-colors
                 ${collapsed ? "p-2 justify-center" : "px-3 py-2 gap-3"}
-                ${item.active ? "bg-red-900" : "hover:bg-gray-800"}
+                ${isActive ? "bg-red-900" : "hover:bg-gray-800"}
               `}
             >
               <span className="relative grid place-items-center w-6 h-6">

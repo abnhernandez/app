@@ -1,21 +1,28 @@
-'use client'
+"use client"
 
-import Link from 'next/link'
-import { Home } from 'lucide-react'
-import Calendario from "@/app/components/calendario";
+import Link from "next/link"
+import { Home } from "lucide-react"
+import Calendario from "@/app/components/calendario"
 
 export default function EventosPage() {
-    return (
-            <div className="rounded-lg p-17 shadow-sm">
-        {/* Icono Inicio */}
-      <Link
-        href="/"
-        aria-label="Ir al inicio"
-        className="fixed top-4 right-4 md:left-4 md:right-auto z-50 inline-flex items-center p-2 rounded-md bg-white/80 backdrop-blur text-gray-900 shadow dark:bg-neutral-800/80 dark:text-gray-100 hover:animate-pulse"
-      >
-        <Home className="h-5 w-5" />
-      </Link>
-                <Calendario />
-            </div>
-    );
+  return (
+    <main className="min-h-screen px-4 py-10">
+      <div className="mx-auto w-full max-w-5xl space-y-6">
+        <header className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Eventos</h1>
+          <Link
+            href="/"
+            aria-label="Ir al inicio"
+            className="inline-flex items-center gap-2 text-sm text-amber-600"
+          >
+            <Home className="h-4 w-4" /> Inicio
+          </Link>
+        </header>
+
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-6">
+          <Calendario />
+        </section>
+      </div>
+    </main>
+  )
 }

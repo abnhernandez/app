@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import PhoneInput from "react-phone-input-2"
-import "react-phone-input-2/lib/bootstrap.css"
 import * as z from "zod"
 import CryptoJS from "crypto-js"
-import { Mail, Phone, User, MessageSquare, Send } from "lucide-react"
+import { Mail, User, MessageSquare, Send } from "lucide-react"
 import { crearRegistro } from "@/lib/registro-peticion-actions"
 import { usePushNotifications } from "@/app/hooks/usePushNotifications"
 
@@ -19,7 +17,6 @@ const STORAGE_KEY = "peticion_oracion_secure"
 const schema = z.object({
   nombre: z.string().optional(),
   email: z.string().email("Correo inválido").optional(),
-  telefono: z.string().min(10, "Teléfono inválido").optional(),
   peticion: z.string().min(1, "Escribe tu petición de oración"),
   anonimo: z.boolean(),
 }).superRefine((data, ctx) => {
@@ -100,14 +97,12 @@ export default function RegistroPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<null | { type: "success" | "error"; text: string }>(null)
   const [showEmail, setShowEmail] = useState(false)
-  const [showPhone, setShowPhone] = useState(false)
 
   usePushNotifications("admin")
 
   const {
     register,
     handleSubmit,
-    control,
     watch,
     reset,
     setValue,
@@ -127,17 +122,6 @@ export default function RegistroPage() {
       if (!next) {
         setValue("email", undefined)
         clearErrors("email")
-      }
-      return next
-    })
-  }
-
-  const togglePhone = () => {
-    setShowPhone((prev) => {
-      const next = !prev
-      if (!next) {
-        setValue("telefono", undefined)
-        clearErrors("telefono")
       }
       return next
     })
@@ -170,7 +154,6 @@ export default function RegistroPage() {
     localStorage.removeItem(STORAGE_KEY)
     reset({ anonimo: false, peticion: "" })
     setShowEmail(false)
-    setShowPhone(false)
   }
 
   const onSubmit = async (data: FormValues) => {
@@ -187,7 +170,6 @@ export default function RegistroPage() {
         peticion: "", // nunca se envía en claro
         nombre: data.nombre ?? "",
         email: data.email ?? "",
-        telefono: data.telefono ?? "",
       }
 
   const res = await crearRegistro(payload)
@@ -282,19 +264,6 @@ export default function RegistroPage() {
                   <Mail size={18} />
                   Correo
                 </button>
-
-                <button
-                  type="button"
-                  onClick={togglePhone}
-                  className={`h-12 rounded-xl border transition flex items-center justify-center gap-2 ${
-                    showPhone
-                      ? "border-zinc-400/70 bg-zinc-100 text-zinc-700 dark:border-white/30 dark:bg-white/10 dark:text-white"
-                      : "border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-white/20 dark:hover:bg-white/10"
-                  }`}
-                >
-                  <Phone size={18} />
-                  Teléfono
-                </button>
               </div>
 
               {showEmail && (
@@ -305,24 +274,6 @@ export default function RegistroPage() {
                     className={commonInputClasses}
                   />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-                </div>
-              )}
-
-              {showPhone && (
-                <div>
-                  <Controller
-                    name="telefono"
-                    control={control}
-                    render={({ field }) => (
-                      <PhoneInput
-                        country="mx"
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        inputClass="!w-full !h-12 !rounded-xl !border-zinc-200 dark:!border-white/20 !focus:ring-0 !focus:outline-none !shadow-none"
-                      />
-                    )}
-                  />
-                  {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono.message}</p>}
                 </div>
               )}
             </div>

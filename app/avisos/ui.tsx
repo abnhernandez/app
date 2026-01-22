@@ -19,30 +19,30 @@ export default function AvisosClient({
   ===================== */
   if (!avisos || avisos.length === 0) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
-        <section className="max-w-md w-full text-center">
-          {/* Inicio */}
-          <Link
-            href="/"
-            aria-label="Ir al inicio"
-            className="fixed top-4 right-4 md:left-4 md:right-auto z-50 inline-flex items-center p-2 rounded-md hover:opacity-80 transition"
-          >
-            <Home className="h-5 w-5" />
-          </Link>
+      <main className="min-h-screen px-4 py-10">
+        <div className="mx-auto max-w-3xl">
+          <header className="flex items-center gap-3">
+            <Link
+              href="/"
+              aria-label="Ir al inicio"
+              className="inline-flex items-center gap-2 text-sm text-amber-600"
+            >
+              <Home className="h-4 w-4" /> Inicio
+            </Link>
+          </header>
 
-          {/* Icono */}
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
-            <BellOff className="h-10 w-10 opacity-50" />
-          </div>
+          <section className="mt-16 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
+              <BellOff className="h-10 w-10 opacity-50" />
+            </div>
 
-          <h1 className="text-2xl font-semibold">
-            Sin avisos por ahora
-          </h1>
+            <h1 className="text-2xl font-semibold">Sin avisos por ahora</h1>
 
-          <p className="mt-2 opacity-60">
-            Cuando haya notificaciones importantes, aparecerán aquí.
-          </p>
-        </section>
+            <p className="mt-2 text-sm text-neutral-500">
+              Cuando haya avisos importantes, aparecerán aquí.
+            </p>
+          </section>
+        </div>
       </main>
     )
   }
@@ -51,26 +51,27 @@ export default function AvisosClient({
      HAY AVISOS
   ===================== */
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-6">
-      <header className="flex items-center gap-3">
-        <Bell className="h-5 w-5" />
-        <h1 className="text-xl font-bold">Avisos</h1>
-      </header>
+    <main className="min-h-screen px-4 py-10">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5" />
+            <h1 className="text-xl font-bold">Avisos</h1>
+          </div>
+          <Link href="/" className="text-sm text-amber-600">Inicio</Link>
+        </header>
 
-      <div className="space-y-4">
-        {avisos.map(a => (
-          <article
-            key={a.id}
-            className="p-4 rounded-lg border space-y-2"
-          >
-            <h2 className="font-semibold">
-              {a.titulo}
-            </h2>
-            <p className="text-sm opacity-80">
-              {a.contenido}
-            </p>
-          </article>
-        ))}
+        <div className="grid gap-4">
+          {avisos.map(a => (
+            <article
+              key={a.id}
+              className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 space-y-2"
+            >
+              <h2 className="font-semibold">{a.titulo}</h2>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">{a.contenido}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </main>
   )

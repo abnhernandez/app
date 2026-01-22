@@ -17,11 +17,13 @@ export default function Page() {
       <Menu collapsed={collapsed} onToggle={toggleMenu} />
 
       {/* Content */}
-    <section className="w-full h-[850px]">
-  <h2 className="sr-only">Chat con IA</h2>
-      <ChatBot />
-      <p className="text-gray-400 text-center text-xs">ChatGPT puede cometer errores. Comprueba la información importante. Consulta Preferencias de cookies.</p>
-    </section>
+      <section className="w-full px-4 py-6">
+        <h2 className="sr-only">Chat con IA</h2>
+        <ChatBot />
+        <p className="text-gray-400 text-center text-xs mt-3">
+          La IA puede equivocarse. Si es importante, verifica con un líder o pastor.
+        </p>
+      </section>
     </div>
   );
 }

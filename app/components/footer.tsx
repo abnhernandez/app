@@ -1,54 +1,75 @@
-// components/Footer.tsx
 import { Youtube, Instagram, Facebook, MessageSquare } from "lucide-react";
 
 export default function Footer() {
   return (
-    <>
-      {/* Social icons floating (centered) */}
-      <div className="fixed bottom-6 left-1/2 z-20 flex items-center gap-6 -translate-x-1/2 sm:top-[700px] sm:left-[650px] sm:bottom-auto sm:translate-x-0">
-        <div className="flex gap-6 p-2 rounded-lg bg-white/5 px-3 py-2 shadow-md backdrop-blur-sm dark:bg-black/40">
-          {/* Iconos con tamaño aumentado */}
-          <a
-            href="https://www.youtube.com/@montesionoaxaca"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="YouTube @montesionoaxaca"
-            className="p-1 rounded-sm hover:bg-white/5 dark:hover:bg-white/6 hover:text-zinc-400"
-          >
-            <Youtube size={27} />
-          </a>
+    <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black">
+      <div className="mx-auto w-full max-w-6xl px-6 py-10">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <h3 className="text-sm font-semibold">Monte Sion Oaxaca</h3>
+            <p className="mt-2 text-sm text-neutral-500">
+              Un lugar para ti en el Reino de Dios.
+            </p>
+          </div>
 
-          <a
-            href="https://www.instagram.com/montesionoaxaca"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram montesionoaxaca"
-            className="p-1 rounded-sm hover:bg-white/5 dark:hover:bg-white/6 hover:text-zinc-400"
-          >
-            <Instagram size={24} />
-          </a>
+          <div>
+            <h4 className="text-sm font-semibold">Contacto</h4>
+            <p className="mt-2 text-sm text-neutral-500">Cuicatlán 184, Santa María Atzompa</p>
+            <a
+              href="https://wa.me/529512091644?text=Hola.%20Necesito%20de%20Dios."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex text-sm text-amber-600"
+            >
+              WhatsApp +52 951 209 1644
+            </a>
+          </div>
 
-          <a
-            href="https://www.facebook.com/montesionoax"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Facebook montesionoax"
-            className="p-1 rounded-sm hover:bg-white/5 dark:hover:bg-white/6 hover:text-zinc-400"
-          >
-            <Facebook size={24} />
-          </a>
-
-          <a
-            href="https://wa.me/529512091644?text=Hola.%20Necesito%20de%20Dios."
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="WhatsApp +52 951 209 1644"
-            className="p-1 rounded-sm hover:bg-white/5 dark:hover:bg-white/6 hover:text-zinc-400"
-          >
-            <MessageSquare size={24} />
-          </a>
+          <div>
+            <h4 className="text-sm font-semibold">Síguenos</h4>
+            <div className="mt-3 flex items-center gap-3">
+              <a
+                href="https://www.youtube.com/@montesionoaxaca"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube @montesionoaxaca"
+                className="p-2 rounded-full border border-neutral-200 dark:border-neutral-800"
+              >
+                <Youtube size={18} />
+              </a>
+              <a
+                href="https://www.instagram.com/montesionoaxaca"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram montesionoaxaca"
+                className="p-2 rounded-full border border-neutral-200 dark:border-neutral-800"
+              >
+                <Instagram size={18} />
+              </a>
+              <a
+                href="https://www.facebook.com/montesionoax"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook montesionoax"
+                className="p-2 rounded-full border border-neutral-200 dark:border-neutral-800"
+              >
+                <Facebook size={18} />
+              </a>
+              <a
+                href="https://wa.me/529512091644?text=Hola.%20Necesito%20de%20Dios."
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp +52 951 209 1644"
+                className="p-2 rounded-full border border-neutral-200 dark:border-neutral-800"
+              >
+                <MessageSquare size={18} />
+              </a>
+            </div>
+          </div>
         </div>
+
+        <p className="mt-8 text-xs text-neutral-500">© {new Date().getFullYear()} Monte Sion Oaxaca</p>
       </div>
-    </>
-  );
+    </footer>
+  )
 }

@@ -1,32 +1,31 @@
-import Link from 'next/link'
-import { Home } from 'lucide-react'
+import Link from "next/link"
+import { Home } from "lucide-react"
 
 export default function LandingOracion() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 text-neutral-800 dark:text-neutral-200">
-
-    {/* Icono Inicio */}
-      <Link
-        href="/"
-        aria-label="Ir al inicio"
-        className="fixed top-4 right-4 md:left-4 md:right-auto z-50 inline-flex items-center p-2 rounded-md bg-white/80 backdrop-blur text-gray-900 shadow dark:bg-neutral-800/80 dark:text-gray-100 hover:animate-pulse"
-      >
-        <Home className="h-5 w-5" />
-      </Link>
+    <main className="mx-auto max-w-3xl px-4 py-12 text-neutral-800 dark:text-neutral-200">
+      <header className="flex items-center justify-between mb-12">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Cómo orar</h1>
+          <p className="text-base md:text-lg text-neutral-600 dark:text-neutral-400">
+            La oración es nuestra primera respuesta, no el último recurso.
+          </p>
+        </div>
+        <Link
+          href="/"
+          aria-label="Ir al inicio"
+          className="inline-flex items-center gap-2 text-sm text-amber-600"
+        >
+          <Home className="h-4 w-4" /> Inicio
+        </Link>
+      </header>
       
-      {/* HEADER */}
-      <header className="mb-16 text-center space-y-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Cómo orar
-        </h1>
-        <p className="text-base md:text-lg text-neutral-600 dark:text-neutral-400">
-          La oración debe ser siempre nuestra primera respuesta, no nuestro último recurso.
-        </p>
+      <section className="mb-16 text-center space-y-4">
         <p className="max-w-xl mx-auto">
           Jesús no nos dejó una oración para repetir, sino una guía para aprender a orar
           de manera equilibrada y profunda.
         </p>
-      </header>
+      </section>
 
       {/* PASO 1 */}
       <section id="paso-1" className="mb-20 space-y-6">

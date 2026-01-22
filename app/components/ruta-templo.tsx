@@ -57,14 +57,18 @@ export function RutaTemplo() {
   }
 
   return (
-    <div className="space-y-4 max-w-md">
-      <button className="btn" onClick={guardarUbicacion}>
-        ⛪ Visitar
+    <div className="space-y-3 max-w-md">
+      <button
+        className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white"
+        onClick={guardarUbicacion}
+        disabled={loading}
+      >
+        {loading ? "Preparando ruta..." : "Abrir ruta en Maps"}
       </button>
 
-      {loading && <p>Redirigiendo a Maps</p>}
+      {loading && <p className="text-xs text-neutral-500">Redirigiendo a Google Maps</p>}
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   )
 }

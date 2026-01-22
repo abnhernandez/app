@@ -10,6 +10,7 @@ import {
   Users,
   Settings,
   Shield,
+  FileText,
   ChevronLeft,
   BookOpen,
   Megaphone,
@@ -26,12 +27,13 @@ export default function Sidebar({ role }: Props) {
   /* =====================
      STATE
   ===================== */
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false
-    const saved = localStorage.getItem("sidebar:collapsed")
-    return saved === "true"
-  })
+  const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar:collapsed")
+    if (saved === "true") setCollapsed(true)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem("sidebar:collapsed", String(collapsed))
@@ -187,6 +189,14 @@ export default function Sidebar({ role }: Props) {
                 label="Configuración"
                 icon={<Settings size={18} />}
                 active={pathname === "/admin/config"}
+                collapsed={collapsed}
+                onSelect={() => setMobileOpen(false)}
+              />
+              <SidebarItem
+                href="/admin/audit"
+                label="Auditoría"
+                icon={<FileText size={18} />}
+                active={pathname === "/admin/audit"}
                 collapsed={collapsed}
                 onSelect={() => setMobileOpen(false)}
               />

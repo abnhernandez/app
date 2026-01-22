@@ -43,6 +43,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
+  // 🏠 Acceso a la raíz y /home según autenticación
+  if (!user && pathname === "/") {
+    return NextResponse.redirect(new URL("/home", request.url))
+  }
+
+  if (user && pathname === "/home") {
+    return NextResponse.redirect(new URL("/", request.url))
+  }
+
   // 👑 Solo admin
   if (user && adminRoutes.some(r => pathname.startsWith(r))) {
     const { data: profile } = await supabase
@@ -72,5 +81,6 @@ export const config = {
     "/admin/:path*",
     "/login",
     "/registro",
+    "/home",
   ],
 }

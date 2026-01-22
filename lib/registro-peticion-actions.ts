@@ -10,7 +10,6 @@ import { createNotificationForAdmins } from "@/lib/notifications"
 type RegistroData = {
   nombre: string
   email?: string
-  telefono?: string
   anonimo: boolean
 
   peticion_cipher: string
@@ -142,14 +141,12 @@ export async function crearRegistro(data: RegistroData) {
     const hmac = signHMAC(cipher.data)
 
     const emailHash = data.email ? sha256(data.email) : null
-    const telefonoHash = data.telefono ? sha256(data.telefono) : null
 
     const { error } = await supabase.from("registro").insert({
       nombre: data.anonimo ? null : data.nombre || null,
       apellido: null,
 
       email_hash: emailHash,
-      telefono_hash: telefonoHash,
 
       peticion_cipher: cipher.data,
       peticion_iv: cipher.iv,

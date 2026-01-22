@@ -1,9 +1,13 @@
-import RegistroForm from "@/app/components/registro"; 
+import RegistroForm from "@/app/components/registro"
+import AuthLayout from "@/app/components/AuthLayout"
 
 export default function RegistroPage() {
     return (
-    <div className="space-y-4">
-        <RegistroForm />;
-            </div>
-    ) 
+        <AuthLayout
+            title="Crear cuenta"
+            subtitle="Empieza en segundos"
+        >
+            <RegistroForm />
+        </AuthLayout>
+    )
 }

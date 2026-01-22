@@ -4,6 +4,7 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { getSupabaseServer } from "@/lib/supabase-server"
 import { createNotification, auditLog } from "@/lib/notifications"
+import { ESTADOS_PETICION, type EstadoPeticion } from "@/lib/peticiones-types"
 import OpenAI from "openai"
 import crypto from "crypto"
 
@@ -70,13 +71,7 @@ function decryptAES(cipherHex: string, ivHex: string, tagHex: string) {
 /* ===============================
    TYPES
 ================================ */
-export type EstadoPeticion =
-  | "Recibida"
-  | "Pendiente"
-  | "En proceso de oración"
-  | "Completada"
-  | "Cerrada"
-  | "Resuelta"
+const ESTADOS_VALIDOS: EstadoPeticion[] = [...ESTADOS_PETICION]
 
 /* ===============================
    AUTH
@@ -116,7 +111,6 @@ export async function crearPeticion(data: {
   peticion_iv: string
   peticion_tag: string
   peticion_hmac: string
-  user_id: string
 }) {
   const { error } = await supabaseAdmin.from("registro").insert({
     ...data,
@@ -190,11 +184,14 @@ export async function updateEstadoPeticion(
   id: string,
   nuevoEstado: EstadoPeticion
 ) {
+  if (!ESTADOS_VALIDOS.includes(nuevoEstado)) {
+    throw new Error("Estado inválido")
+  }
   const user = await assertAdmin()
 
   const { data: prev, error: prevError } = await supabaseAdmin
     .from("registro")
-    .select("estado, user_id")
+    .select("estado")
     .eq("id", id)
     .maybeSingle()
 
@@ -234,15 +231,6 @@ export async function updateEstadoPeticion(
         : "progress",
   })
 
-  if (prev.user_id) {
-    await createNotification({
-      userId: prev.user_id,
-      title: "Actualización de tu petición",
-      message: `Tu petición ahora está en estado: ${nuevoEstado}`,
-      tone: "progress",
-      role: "user",
-    })
-  }
 }
 
 /* ===============================

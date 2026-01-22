@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useTransition, useEffect } from "react"
 import { updateUserRole, deleteUser } from "@/lib/admin-actions"
 import {
   Shield,
@@ -149,6 +149,10 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
   const totalPages = Math.ceil(filtered.length / perPage)
   const paginated = filtered.slice((page - 1) * perPage, page * perPage)
 
+  useEffect(() => {
+    setPage(1)
+  }, [query, roleFilter])
+
   /* =====================
      ACTIONS (OPTIMISTIC)
   ===================== */
@@ -205,10 +209,11 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
      RENDER
   ===================== */
   return (
-    <div className="space-y-7">
-      <h2 className="text-2xl font-semibold">
-        Gestión de Identidad y Accesos (IAM)
-      </h2>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold">Gestión de Identidad y Accesos</h2>
+        <p className="text-sm text-neutral-500">Administra roles y accesos de usuarios</p>
+      </div>
 
       {/* CONTROLS */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -218,14 +223,14 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por nombre o email"
-            className="w-full rounded-xl pl-9 pr-3 py-2 text-sm dark:bg-neutral-900"
+            className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 pl-9 pr-3 py-2 text-sm"
           />
         </div>
 
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as "all" | Role)}
-          className="rounded-xl px-3 py-2 text-sm dark:bg-neutral-900"
+          className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
         >
           <option value="all">Todos</option>
           <option value="admin">Admins</option>
@@ -234,11 +239,17 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
       </div>
 
       {/* USERS */}
+      <div className="flex items-center justify-between text-xs text-neutral-500">
+        <span>
+          Mostrando {paginated.length} de {filtered.length}
+        </span>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {paginated.map((u) => (
           <div
             key={u.id}
-            className="rounded-2xl bg-white dark:bg-neutral-900 p-4 shadow-sm"
+            className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
           >
             <div className="space-y-1">
               <p className="font-medium">{u.name ?? "—"}</p>
@@ -251,13 +262,13 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
               <div className="flex gap-2">
                 <button
                   onClick={() => confirmRole(u)}
-                  className="rounded-lg px-3 py-1 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-xs"
                 >
                   Cambiar rol
                 </button>
                 <button
                   onClick={() => confirmDelete(u)}
-                  className="rounded-lg px-3 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  className="rounded-lg border border-red-200 dark:border-red-800/40 px-3 py-1 text-xs text-red-600"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -278,7 +289,7 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
                 ${
                   page === i + 1
                     ? "bg-indigo-600 text-white"
-                    : "hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                    : "border border-neutral-200 dark:border-neutral-800"
                 }`}
             >
               {i + 1}
