@@ -24,3 +24,43 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Phone input overrides (react-phone-number-input) */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.PhoneInputCountry {
+  display: flex;
+  align-items: center;
+}
+
+.PhoneInputCountrySelect {
+  height: 3rem;
+  padding: 0 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: inherit;
+  outline: none;
+}
+
+.PhoneInputCountrySelect:focus {
+  box-shadow: 0 0 0 2px rgba(161, 161, 170, 0.6);
+}
+
+.PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .PhoneInputCountrySelect {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+}

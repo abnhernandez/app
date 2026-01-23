@@ -1,11 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { useState, useEffect, forwardRef } from "react"
+import type { InputHTMLAttributes } from "react"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import CryptoJS from "crypto-js"
-import { Mail, User, MessageSquare, Send } from "lucide-react"
+import { Mail, User, MessageSquare, Send, Phone } from "lucide-react"
+import PhoneInput from "react-phone-number-input"
+import { isValidPhoneNumber } from "libphonenumber-js"
+import "react-phone-number-input/style.css"
 import { crearRegistro } from "@/lib/registro-peticion-actions"
 import { usePushNotifications } from "@/app/hooks/usePushNotifications"
 
@@ -17,6 +21,12 @@ const STORAGE_KEY = "peticion_oracion_secure"
 const schema = z.object({
   nombre: z.string().optional(),
   email: z.string().email("Correo inválido").optional(),
+  telefono: z
+    .string()
+    .optional()
+    .refine((value) => !value || isValidPhoneNumber(value), {
+      message: "Teléfono inválido",
+    }),
   peticion: z.string().min(1, "Escribe tu petición de oración"),
   anonimo: z.boolean(),
 }).superRefine((data, ctx) => {
@@ -93,10 +103,23 @@ async function encryptE2EE(text: string) {
 const commonInputClasses =
   "w-full px-4 py-3 rounded-xl bg-white dark:bg-white/10 border border-zinc-200 dark:border-white/20 text-black dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-300 focus:ring-2 focus:ring-zinc-400/60 focus:outline-none"
 
+const PhoneNumberInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
+  function PhoneNumberInput(props, ref) {
+    return (
+      <input
+        ref={ref}
+        {...props}
+        className={`${commonInputClasses} ${props.className ?? ""}`}
+      />
+    )
+  }
+)
+
 export default function RegistroPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<null | { type: "success" | "error"; text: string }>(null)
   const [showEmail, setShowEmail] = useState(false)
+  const [showTelefono, setShowTelefono] = useState(false)
 
   usePushNotifications("admin")
 
@@ -107,10 +130,11 @@ export default function RegistroPage() {
     reset,
     setValue,
     clearErrors,
+    control,
     formState: { errors }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { anonimo: false, peticion: "" },
+    defaultValues: { anonimo: false, peticion: "", telefono: undefined },
     shouldUnregister: true,
   })
 
@@ -122,6 +146,17 @@ export default function RegistroPage() {
       if (!next) {
         setValue("email", undefined)
         clearErrors("email")
+      }
+      return next
+    })
+  }
+
+  const toggleTelefono = () => {
+    setShowTelefono((prev) => {
+      const next = !prev
+      if (!next) {
+        setValue("telefono", undefined)
+        clearErrors("telefono")
       }
       return next
     })
@@ -154,6 +189,7 @@ export default function RegistroPage() {
     localStorage.removeItem(STORAGE_KEY)
     reset({ anonimo: false, peticion: "" })
     setShowEmail(false)
+    setShowTelefono(false)
   }
 
   const onSubmit = async (data: FormValues) => {
@@ -170,6 +206,7 @@ export default function RegistroPage() {
         peticion: "", // nunca se envía en claro
         nombre: data.nombre ?? "",
         email: data.email ?? "",
+        telefono: data.telefono ?? "",
       }
 
   const res = await crearRegistro(payload)
@@ -264,6 +301,18 @@ export default function RegistroPage() {
                   <Mail size={18} />
                   Correo
                 </button>
+                <button
+                  type="button"
+                  onClick={toggleTelefono}
+                  className={`h-12 rounded-xl border transition flex items-center justify-center gap-2 ${
+                    showTelefono
+                      ? "border-zinc-400/70 bg-zinc-100 text-zinc-700 dark:border-white/30 dark:bg-white/10 dark:text-white"
+                      : "border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-white/20 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <Phone size={18} />
+                  Teléfono
+                </button>
               </div>
 
               {showEmail && (
@@ -274,6 +323,31 @@ export default function RegistroPage() {
                     className={commonInputClasses}
                   />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                </div>
+              )}
+
+              {showTelefono && (
+                <div>
+                  <div className="flex items-center gap-3">
+                    <Phone size={20} className="text-zinc-500" />
+                    <Controller
+                      name="telefono"
+                      control={control}
+                      render={({ field }) => (
+                        <PhoneInput
+                          {...field}
+                          defaultCountry="MX"
+                          placeholder="Número de teléfono"
+                          inputComponent={PhoneNumberInput}
+                          className="w-full"
+                          countrySelectProps={{
+                            "aria-label": "Código de país",
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
+                  {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono.message}</p>}
                 </div>
               )}
             </div>
