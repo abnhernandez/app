@@ -53,8 +53,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // ⛔ Bloqueo temporal de /home
-  if (pathname.startsWith("/home")) {
+  // ⛔ Bloqueo temporal de /home (solo no autenticados)
+  if (!user && pathname.startsWith("/home")) {
     return NextResponse.redirect(new URL("/peticion", request.url))
   }
 
