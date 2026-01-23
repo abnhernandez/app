@@ -138,10 +138,14 @@ export default function CalendarioSemanal({
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(new Date());
   }, []);
 
-  const dataSource = eventos ?? eventosDb ?? [];
+  const dataSource = useMemo(
+    () => eventos ?? eventosDb ?? [],
+    [eventos, eventosDb]
+  );
 
   const visibles = useMemo(
     () =>
@@ -181,7 +185,7 @@ export default function CalendarioSemanal({
           <p className="text-sm text-muted-foreground">Cargando eventos...</p>
         )}
 
-        {error && !eventosDb && (
+        {!!error && !eventosDb && (
           <p className="text-sm text-muted-foreground">
             No se pudieron cargar los eventos.
           </p>

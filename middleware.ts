@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient, type SetAllCookies } from "@supabase/ssr"
+
+type CookiePayload = Parameters<SetAllCookies>[0][number]
 
 const protectedRoutes = ["/dashboard", "/account", "/admin"]
 const adminRoutes = ["/admin"]
@@ -19,7 +21,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookies) {
+        setAll(cookies: CookiePayload[]) {
           cookies.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options)
           })

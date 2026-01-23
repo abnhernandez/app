@@ -219,7 +219,7 @@ export function Notifications({
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        ({ new: n }) => {
+        ({ new: n }: { new: Notification }) => {
           if (silent) return
           setItems((prev) => [n as Notification, ...prev])
           setUnread((prev) => prev + 1)
@@ -234,7 +234,7 @@ export function Notifications({
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        ({ new: n }) => {
+        ({ new: n }: { new: Partial<Notification> }) => {
           if (n.read) {
             setUnread((prev) => Math.max(0, prev - 1))
           }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useTransition, useEffect } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { updateUserRole, deleteUser } from "@/lib/admin-actions"
 import {
   Shield,
@@ -149,10 +149,6 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
   const totalPages = Math.ceil(filtered.length / perPage)
   const paginated = filtered.slice((page - 1) * perPage, page * perPage)
 
-  useEffect(() => {
-    setPage(1)
-  }, [query, roleFilter])
-
   /* =====================
      ACTIONS (OPTIMISTIC)
   ===================== */
@@ -221,7 +217,10 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
           <Search className="absolute left-3 top-2.5 text-neutral-400" size={16} />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setPage(1)
+            }}
             placeholder="Buscar por nombre o email"
             className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 pl-9 pr-3 py-2 text-sm"
           />
@@ -229,7 +228,10 @@ export default function AdminUsersTable({ users = [] }: { users?: UserItem[] }) 
 
         <select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as "all" | Role)}
+          onChange={(e) => {
+            setRoleFilter(e.target.value as "all" | Role)
+            setPage(1)
+          }}
           className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
         >
           <option value="all">Todos</option>

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import Material from '@/app/components/material'
@@ -21,9 +21,33 @@ const VIEW_THRESHOLD_SECONDS = 60
 const VIEW_PERCENT_THRESHOLD = 0.9
 const VIEW_TTL_MS = 24 * 60 * 60 * 1000
 
+type YouTubePlayer = {
+  getDuration?: () => number
+  destroy?: () => void
+}
+
+type YouTubePlayerConstructor = new (
+  element: HTMLIFrameElement,
+  options: {
+    events: {
+      onReady: () => void
+      onStateChange: (event: { data: number }) => void
+    }
+  }
+) => YouTubePlayer
+
+type YouTubeAPI = {
+  Player: YouTubePlayerConstructor
+  PlayerState?: {
+    PLAYING: number
+    PAUSED: number
+    ENDED: number
+  }
+}
+
 declare global {
   interface Window {
-    YT?: any
+    YT?: YouTubeAPI
     onYouTubeIframeAPIReady?: () => void
   }
 }
@@ -41,20 +65,19 @@ export default function VideoPlayer({
   nextLabel = 'Siguiente',
 }: VideoPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
-  const playerRef = useRef<any>(null)
+  const playerRef = useRef<YouTubePlayer | null>(null)
   const watchIntervalRef = useRef<number | null>(null)
   const watchedSecondsRef = useRef(0)
   const durationRef = useRef<number>(0)
   const thresholdRef = useRef<number>(VIEW_THRESHOLD_SECONDS)
   const hasRecordedRef = useRef(false)
-  const [resolvedUrl, setResolvedUrl] = useState(videoUrl)
 
   const isYouTube = useMemo(
     () => /youtube\.com\/embed\//i.test(videoUrl),
     [videoUrl]
   )
 
-  const recordView = async () => {
+  const recordView = useCallback(async () => {
     if (!lessonId || hasRecordedRef.current) return
 
     const storageKey = `lesson-viewed-${lessonId}`
@@ -81,32 +104,33 @@ export default function VideoPlayer({
     } catch {
       // Silenciar errores de red para no romper la UX
     }
-  }
+  }, [lessonId])
 
-  useEffect(() => {
-    if (!isYouTube) return
-    if (typeof window === 'undefined') return
+  const resolvedUrl = useMemo(() => {
+    if (!isYouTube || typeof window === 'undefined') return videoUrl
 
     try {
       const url = new URL(videoUrl)
       url.searchParams.set('enablejsapi', '1')
       url.searchParams.set('playsinline', '1')
       url.searchParams.set('origin', window.location.origin)
-      setResolvedUrl(url.toString())
+      return url.toString()
     } catch {
-      setResolvedUrl(videoUrl)
+      return videoUrl
     }
   }, [isYouTube, videoUrl])
 
   useEffect(() => {
     if (!isYouTube || !lessonId) return
     if (typeof window === 'undefined') return
-    if (!iframeRef.current) return
+
+    const iframe = iframeRef.current
+    if (!iframe) return
 
     const setupPlayer = () => {
       if (!window.YT?.Player || playerRef.current) return
 
-      playerRef.current = new window.YT.Player(iframeRef.current, {
+      playerRef.current = new window.YT.Player(iframe, {
         events: {
           onReady: () => {
             try {
@@ -186,7 +210,7 @@ export default function VideoPlayer({
         playerRef.current = null
       }
     }
-  }, [isYouTube, lessonId, videoUrl])
+  }, [isYouTube, lessonId, recordView, videoUrl])
   return (
     <section className="w-full max-w-6xl mx-auto px-4">
       {/* Título */}

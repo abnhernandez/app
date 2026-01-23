@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient, type SetAllCookies } from "@supabase/ssr"
 import { cookies } from "next/headers"
-
-type CookieOptions = {
-  path?: string
-  maxAge?: number
-  domain?: string
-  sameSite?: "lax" | "strict" | "none"
-  secure?: boolean
-  expires?: Date
-}
+type CookiePayload = Parameters<SetAllCookies>[0][number]
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -34,9 +26,9 @@ export async function GET(request: Request) {
             value: cookie.value,
           }))
         },
-        setAll(cookies) {
-          cookies.forEach(({ name, value, ...options }) => {
-            response.cookies.set({ name, value, ...(options as CookieOptions) })
+        setAll(cookies: CookiePayload[]) {
+          cookies.forEach(({ name, value, options }) => {
+            response.cookies.set({ name, value, ...(options ?? {}) })
           })
         },
       },

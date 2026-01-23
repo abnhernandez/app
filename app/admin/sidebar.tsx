@@ -27,13 +27,11 @@ export default function Sidebar({ role }: Props) {
   /* =====================
      STATE
   ===================== */
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem("sidebar:collapsed") === "true"
+  })
   const [mobileOpen, setMobileOpen] = useState(false)
-
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebar:collapsed")
-    if (saved === "true") setCollapsed(true)
-  }, [])
 
   useEffect(() => {
     localStorage.setItem("sidebar:collapsed", String(collapsed))

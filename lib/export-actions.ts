@@ -6,7 +6,7 @@ import { Parser } from "json2csv"
 import ExcelJS from "exceljs"
 
 export async function exportCSV() {
-  const data = await getPeticiones()
+  const data = (await getPeticiones()) as PeticionRow[]
   const fields = data.length > 0 ? Object.keys(data[0]) : []
   const parser = new Parser({ fields })
 
@@ -14,7 +14,7 @@ export async function exportCSV() {
 }
 
 export async function exportXLSX() {
-  const data = await getPeticiones()
+  const data = (await getPeticiones()) as PeticionRow[]
   const workbook = new ExcelJS.Workbook()
   const sheet = workbook.addWorksheet("Peticiones")
 
@@ -35,8 +35,16 @@ type ExportFilters = {
   sortBy?: "recent" | "oldest"
 }
 
+type PeticionRow = {
+  nombre?: string | null
+  email?: string | null
+  estado?: EstadoPeticion | null
+  created_at?: string | null
+  [key: string]: unknown
+}
+
 function filterPeticiones(
-  data: Array<Record<string, any>>,
+  data: PeticionRow[],
   { search, estado = "all", sortBy = "recent" }: ExportFilters
 ) {
   const q = search?.trim().toLowerCase()
@@ -63,7 +71,7 @@ function filterPeticiones(
 }
 
 export async function exportCSVFiltered(filters: ExportFilters) {
-  const data = await getPeticiones()
+  const data = (await getPeticiones()) as PeticionRow[]
   const filtered = filterPeticiones(data, filters)
   const fields = filtered.length > 0 ? Object.keys(filtered[0]) : []
   const parser = new Parser({ fields })
@@ -72,7 +80,7 @@ export async function exportCSVFiltered(filters: ExportFilters) {
 }
 
 export async function exportXLSXFiltered(filters: ExportFilters) {
-  const data = await getPeticiones()
+  const data = (await getPeticiones()) as PeticionRow[]
   const filtered = filterPeticiones(data, filters)
   const workbook = new ExcelJS.Workbook()
   const sheet = workbook.addWorksheet("Peticiones")

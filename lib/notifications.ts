@@ -174,7 +174,7 @@ export async function createNotificationForAdmins({
   if (error) throw error
   if (!admins?.length) return
 
-  const rows = admins.map((admin) => ({
+  const rows = (admins ?? []).map((admin: { id: string }) => ({
     user_id: admin.id,
     title,
     message,

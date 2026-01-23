@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState, useRef } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type AuthChangeEvent, type Session } from "@supabase/supabase-js"
 import { ChevronDown, Menu, X, Search } from "lucide-react"
 import { displayNameFrom } from "@/lib/utils"
 
@@ -31,7 +31,10 @@ export function BarradeNavegacion() {
     }
     fetchUser();
     // Listen to auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((
+      _event: AuthChangeEvent,
+      session: Session | null
+    ) => {
       if (!_mounted) return;
       if (session?.user) {
         setUsername(displayNameFrom(session.user.user_metadata?.username || session.user.email) || "Usuario");

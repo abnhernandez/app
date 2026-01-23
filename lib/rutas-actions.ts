@@ -1,7 +1,8 @@
 "use server"
 
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient, type SetAllCookies } from "@supabase/ssr"
 import { cookies } from "next/headers"
+type CookiePayload = Parameters<SetAllCookies>[0][number]
 
 export async function guardarUbicacionUsuario({
   userLat,
@@ -18,8 +19,8 @@ export async function guardarUbicacionUsuario({
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value, options }) => 
+        setAll: (cookies: CookiePayload[]) => {
+          cookies.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options)
           )
         },

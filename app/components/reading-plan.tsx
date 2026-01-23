@@ -71,7 +71,7 @@ export function ReadingPlan() {
           </div>
         )}
 
-        {error && !readings && (
+        {!!error && !readings && (
           <div className="text-center py-8 text-muted-foreground">
             <p>Houston, tenemos un problema! 😵‍💫</p>
           </div>
