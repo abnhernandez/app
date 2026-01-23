@@ -1,24 +1,15 @@
 import { Users, Heart, Baby } from "lucide-react"
+import { getMinistries } from "@/lib/ministries-actions"
 
-const MINISTRIES = [
-  {
-    title: "Jóvenes",
-    description: "Encuentros, discipulado y comunidad para la nueva generación",
-    icon: Users,
-  },
-  {
-    title: "Mujeres",
-    description: "Formación, acompañamiento espiritual y comunidad femenina",
-    icon: Heart,
-  },
-  {
-    title: "Niños",
-    description: "Enseñanza bíblica creativa para los más pequeños",
-    icon: Baby,
-  },
-]
+const ICONS = {
+  users: Users,
+  heart: Heart,
+  baby: Baby,
+} as const
 
-export function MinistriesSection() {
+export async function MinistriesSection() {
+  const ministries = await getMinistries()
+
   return (
     <section
       id="ministerios"
@@ -37,24 +28,33 @@ export function MinistriesSection() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {MINISTRIES.map((ministry) => (
-          <article
-            key={ministry.title}
-            className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-accent/30 hover:shadow-md"
-          >
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors group-hover:bg-accent/10 group-hover:text-accent">
-              <ministry.icon className="h-6 w-6" />
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-card-foreground">
-              {ministry.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {ministry.description}
-            </p>
-          </article>
-        ))}
-      </div>
+      {ministries.length === 0 ? (
+        <div className="mt-10 rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          Aún no hay ministerios publicados.
+        </div>
+      ) : (
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {ministries.map((ministry) => {
+            const Icon = ICONS[ministry.icon as keyof typeof ICONS] ?? Users
+            return (
+              <article
+                key={ministry.id}
+                className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-accent/30 hover:shadow-md"
+              >
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors group-hover:bg-accent/10 group-hover:text-accent">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-card-foreground">
+                  {ministry.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {ministry.description}
+                </p>
+              </article>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }

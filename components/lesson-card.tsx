@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Calendar, Eye } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LessonCardProps {
@@ -7,12 +7,33 @@ interface LessonCardProps {
   href: string
   index?: number
   className?: string
+  publishedAt?: string | null
+  views?: number
 }
 
-export function LessonCard({ title, href, index, className }: LessonCardProps) {
+export function LessonCard({
+  title,
+  href,
+  index,
+  className,
+  publishedAt,
+  views,
+}: LessonCardProps) {
+  const publishedLabel = publishedAt
+    ? new Intl.DateTimeFormat("es-MX", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(publishedAt))
+    : null
   return (
-    <Link href={href} className={cn("group block", className)}>
-      <article className="relative h-full overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/5">
+    <article
+      className={cn(
+        "group relative h-full overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/5",
+        className
+      )}
+    >
+      <Link href={href} className="block">
         {/* Decorative gradient header */}
         <div className="relative h-32 overflow-hidden bg-gradient-to-br from-muted via-muted to-accent/10">
           {/* Subtle pattern overlay */}
@@ -53,19 +74,41 @@ export function LessonCard({ title, href, index, className }: LessonCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-5">
+        <div className="p-5 pb-0">
           <h3 className="text-base font-semibold text-card-foreground line-clamp-2 text-pretty">
             {title}
           </h3>
+        </div>
+      </Link>
 
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-sm font-medium text-accent">Explorar</span>
-            <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 text-accent transition-transform group-hover:translate-x-1">
-              <ArrowRight className="h-4 w-4" />
+      <div className="p-5 pt-4">
+
+          {(publishedLabel || typeof views === "number") && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-foreground">
+              {publishedLabel && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/60 px-3 py-1 shadow-sm backdrop-blur">
+                  <Calendar className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                  <span className="text-muted-foreground">Publicado {publishedLabel}</span>
+                </span>
+              )}
+              {typeof views === "number" && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/60 px-3 py-1 shadow-sm backdrop-blur">
+                  <Eye className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                  <span className="text-muted-foreground">{views.toLocaleString("es-MX")} vistas</span>
+                </span>
+              )}
             </div>
+          )}
+
+        <div className="mt-4 flex items-center justify-between">
+          <Link href={href} className="text-sm font-medium text-accent">
+            Explorar
+          </Link>
+          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 text-accent transition-transform group-hover:translate-x-1">
+            <ArrowRight className="h-4 w-4" />
           </div>
         </div>
-      </article>
-    </Link>
+      </div>
+    </article>
   )
 }

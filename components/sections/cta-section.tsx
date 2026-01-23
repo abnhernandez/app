@@ -1,7 +1,14 @@
 import Link from "next/link"
-import { HeartHandshake, ArrowRight } from "lucide-react"
+import { ArrowRight, HeartHandshake } from "lucide-react"
+import { getCtaSettings } from "@/lib/cta-actions"
 
-export function CtaSection() {
+export async function CtaSection() {
+  const settings = await getCtaSettings()
+
+  if (!settings) return null
+
+  const Icon = settings.icon === "arrow" ? ArrowRight : HeartHandshake
+
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-16">
       <div className="relative overflow-hidden rounded-2xl bg-primary p-8 sm:p-12 lg:p-16">
@@ -24,33 +31,32 @@ export function CtaSection() {
 
         <div className="relative mx-auto max-w-2xl text-center">
           <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary-foreground/10">
-            <HeartHandshake className="h-7 w-7 text-primary-foreground" />
+            <Icon className="h-7 w-7 text-primary-foreground" />
           </div>
 
           <h2 className="font-serif text-2xl font-normal text-primary-foreground sm:text-3xl lg:text-4xl text-balance">
-            ¿Necesitas oración?
+            {settings.title}
           </h2>
 
           <p className="mt-4 text-primary-foreground/80">
-            Envía tu petición y nuestro equipo orará por ti. Tu solicitud es
-            confidencial.
+            {settings.description}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/peticion"
+              href={settings.primary_href}
               className="inline-flex items-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary-foreground/90 hover:shadow-lg"
             >
-              Enviar petición
+              {settings.primary_label}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="https://wa.me/529512091644?text=Hola.%20Necesito%20de%20Dios."
-              target="_blank"
-              rel="noopener noreferrer"
+              href={settings.secondary_href}
+              target={settings.secondary_external ? "_blank" : undefined}
+              rel={settings.secondary_external ? "noopener noreferrer" : undefined}
               className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
             >
-              Contactar por WhatsApp
+              {settings.secondary_label}
             </Link>
           </div>
         </div>

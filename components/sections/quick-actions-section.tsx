@@ -1,15 +1,9 @@
 import Link from "next/link"
+import { getQuickActions } from "@/lib/quick-actions-actions"
 
-const ACTIONS = [
-  { label: "Enviar petición", href: "/peticion" },
-  { label: "Leer Biblia", href: "/bible" },
-  { label: "Aprender a orar", href: "/orar" },
-  { label: "Ver eventos", href: "/eventos" },
-  { label: "Recursos", href: "/estudio" },
-  { label: "Avisos", href: "/avisos" },
-]
+export async function QuickActionsSection() {
+  const actions = await getQuickActions()
 
-export function QuickActionsSection() {
   return (
     <section
       className="mx-auto w-full max-w-6xl px-6 py-8"
@@ -37,7 +31,7 @@ export function QuickActionsSection() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {ACTIONS.map((action) => (
+          {actions.map((action) => (
             <Link
               key={action.href}
               href={action.href}

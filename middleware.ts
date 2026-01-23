@@ -7,6 +7,10 @@ const adminRoutes = ["/admin"]
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
+  const isServerAction =
+    request.headers.get("next-action") !== null ||
+    request.headers.get("x-action") !== null
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -36,6 +40,10 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/callback"
     return NextResponse.redirect(url)
+  }
+
+  if (isServerAction) {
+    return response
   }
 
   // 🔐 Rutas protegidas

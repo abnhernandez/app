@@ -23,6 +23,24 @@ export async function loginAction(data: {
 }
 
 /* =========================
+   LOGIN INLINE (MODAL)
+========================= */
+export async function loginInlineAction(data: {
+  email: string
+  password: string
+}) {
+  const supabase = await getSupabaseServer()
+
+  const { error } = await supabase.auth.signInWithPassword(data)
+
+  if (error) {
+    return { error: "Credenciales inválidas" }
+  }
+
+  return { success: true }
+}
+
+/* =========================
    REGISTRO
 ========================= */
 export async function registerAction(data: {

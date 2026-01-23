@@ -1,34 +1,10 @@
 import Link from "next/link"
 import { MessageCircle, ArrowRight } from "lucide-react"
+import { getCommunityGroups } from "@/lib/community-actions"
 
-const WHATSAPP_GROUPS = [
-  {
-    name: "Comunidad general",
-    description: "Canal principal para enterarte de todo",
-    href: "https://chat.whatsapp.com/GC6PocIbE3L9a0YhvzWmWk",
-    highlight: false,
-  },
-  {
-    name: "Escogidos",
-    description: "Grupo abierto para nuevos; sin permiso de administradores",
-    href: "https://chat.whatsapp.com/IDYHs0Q8EWs6Rk7aIwa6nf",
-    highlight: true,
-  },
-  {
-    name: "Llamada a la oración",
-    description: "Estudio bíblico y oración comunitaria",
-    href: "https://chat.whatsapp.com/Lm9bm3fK9PNGHcHNWkavMr",
-    highlight: false,
-  },
-  {
-    name: "Jóvenes Monte Sion",
-    description: "Grupo general para jóvenes en la fe",
-    href: "https://chat.whatsapp.com/DkPavPYXDmJK08qjNc48IJ",
-    highlight: false,
-  },
-]
+export async function CommunitySection() {
+  const groups = await getCommunityGroups()
 
-export function CommunitySection() {
   return (
     <section
       id="comunidad"
@@ -56,39 +32,45 @@ export function CommunitySection() {
         </Link>
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {WHATSAPP_GROUPS.map((group) => (
-          <a
-            key={group.name}
-            href={group.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`group flex items-start gap-4 rounded-xl border p-5 transition-all hover:shadow-md ${
-              group.highlight
-                ? "border-accent/30 bg-accent/5 hover:border-accent/50"
-                : "border-border bg-card hover:border-accent/30"
-            }`}
-          >
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
+      {groups.length === 0 ? (
+        <div className="mt-10 rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          Aún no hay grupos publicados.
+        </div>
+      ) : (
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          {groups.map((group) => (
+            <a
+              key={group.id}
+              href={group.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group flex items-start gap-4 rounded-xl border p-5 transition-all hover:shadow-md ${
                 group.highlight
-                  ? "bg-accent/20 text-accent"
-                  : "bg-muted text-muted-foreground group-hover:bg-accent/10 group-hover:text-accent"
+                  ? "border-accent/30 bg-accent/5 hover:border-accent/50"
+                  : "border-border bg-card hover:border-accent/30"
               }`}
             >
-              <MessageCircle className="h-5 w-5" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-card-foreground">
-                {group.name}
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {group.description}
-              </p>
-            </div>
-          </a>
-        ))}
-      </div>
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                  group.highlight
+                    ? "bg-accent/20 text-accent"
+                    : "bg-muted text-muted-foreground group-hover:bg-accent/10 group-hover:text-accent"
+                }`}
+              >
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-card-foreground">
+                  {group.name}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {group.description}
+                </p>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

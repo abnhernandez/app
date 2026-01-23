@@ -1,15 +1,11 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { LessonCard } from "@/components/lesson-card"
+import { getFeaturedLessons } from "@/lib/lessons-actions"
 
-const FEATURED_LESSONS = [
-  { title: "¿Quién es Dios?", href: "/lecciones/clase/789207" },
-  { title: "¿Cómo buscar a Dios?", href: "/lecciones/clase/790207" },
-  { title: "Unción del Espíritu Santo", href: "/lecciones/clase/791207" },
-  { title: "¿Cómo honrar a Dios?", href: "/lecciones/clase/792207" },
-]
+export async function LessonsSection() {
+  const lessons = await getFeaturedLessons()
 
-export function LessonsSection() {
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-16">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -30,16 +26,24 @@ export function LessonsSection() {
         </Link>
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {FEATURED_LESSONS.map((lesson, index) => (
-          <LessonCard
-            key={lesson.href}
-            title={lesson.title}
-            href={lesson.href}
-            index={index}
-          />
-        ))}
-      </div>
+      {lessons.length === 0 ? (
+        <div className="mt-10 rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          Aún no hay clases destacadas publicadas.
+        </div>
+      ) : (
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {lessons.map((lesson, index) => (
+            <LessonCard
+              key={lesson.id}
+              title={lesson.title}
+              href={lesson.href}
+              index={index}
+              publishedAt={lesson.published_at}
+              views={lesson.views}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

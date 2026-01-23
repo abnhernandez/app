@@ -1,20 +1,21 @@
 import Link from "next/link"
-import { HeartHandshake, MapPin, Calendar, Clock, PlayCircle } from "lucide-react"
+import { Calendar, Clock, HeartHandshake, MapPin } from "lucide-react"
+import { getHeroCtas } from "@/lib/hero-ctas-actions"
+import { getHeroSchedule, getHeroSettings } from "@/lib/hero-actions"
 
-const SCHEDULE_ITEMS = [
-  {
-    label: "Reunión general",
-    time: "Domingos 2:30 p.m.",
-    location: "Monte Sion · Santa María Atzompa",
-  },
-  {
-    label: "Reunión de oración",
-    time: "Viernes 6:00 p.m.",
-    location: "Abierta a toda la iglesia",
-  },
-]
+export async function HeroSection() {
+  const [settings, schedule, ctas] = await Promise.all([
+    getHeroSettings(),
+    getHeroSchedule(),
+    getHeroCtas(),
+  ])
 
-export function HeroSection() {
+  const ctaIconMap = {
+    heart: HeartHandshake,
+    map: MapPin,
+    calendar: Calendar,
+  }
+
   return (
     <section
       id="inicio"
@@ -32,12 +33,17 @@ export function HeroSection() {
           {/* Content */}
           <div className="max-w-2xl space-y-6">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5">
-              <span className="flex h-2 w-2 rounded-full bg-accent" />
-              <span className="text-sm font-medium text-muted-foreground">
-                Iglesia Cristiana Monte Sion
-              </span>
-            </div>
+            {settings?.badge_label ? (
+              <Link
+                href={settings.badge_href}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5 transition-colors hover:bg-muted"
+              >
+                <span className="flex h-2 w-2 rounded-full bg-accent" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  {settings.badge_label}
+                </span>
+              </Link>
+            ) : null}
 
             {/* Headline */}
             <h1
@@ -55,63 +61,73 @@ export function HeroSection() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href="/peticion"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
-              >
-                <HeartHandshake className="h-5 w-5" />
-                Enviar petición
-              </Link>
-              <Link
-                href="#visitanos"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-              >
-                <MapPin className="h-5 w-5" />
-                Visítanos
-              </Link>
-              <Link
-                href="/avisos"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-              >
-                <Calendar className="h-5 w-5" />
-                Ver avisos
-              </Link>
+              {ctas.map((cta) => {
+                const Icon = ctaIconMap[cta.icon] ?? HeartHandshake
+                const isPrimary = cta.variant === "primary"
+                return (
+                  <Link
+                    key={cta.id}
+                    href={cta.href}
+                    className={
+                      isPrimary
+                        ? "inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
+                        : "inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                    }
+                  >
+                    <Icon className="h-5 w-5" />
+                    {cta.label}
+                  </Link>
+                )
+              })}
             </div>
           </div>
 
           {/* Schedule Cards */}
           <div id="horarios" className="space-y-4">
-            {SCHEDULE_ITEMS.map((item) => (
-              <article
-                key={item.label}
-                className="rounded-xl border border-border bg-card p-5 transition-all hover:border-accent/30 hover:shadow-md"
-              >
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.label}
-                </p>
-                <p className="mt-1.5 flex items-center gap-2 text-xl font-semibold text-card-foreground">
-                  <Clock className="h-5 w-5 text-accent" />
-                  {item.time}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {item.location}
-                </p>
-              </article>
-            ))}
+            {schedule.map((item) => {
+              const displayLocation = item.location?.startsWith("/")
+                ? null
+                : item.location
 
-            {/* Resources Link */}
-            <div className="rounded-xl border border-accent/20 bg-accent/5 p-5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Predicaciones
-              </p>
-              <Link
-                href="/estudio"
-                className="mt-2 inline-flex items-center gap-2 text-base font-semibold text-accent transition-colors hover:text-accent/80"
-              >
-                <PlayCircle className="h-5 w-5" />
-                Ver recursos
-              </Link>
-            </div>
+              return item.href ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="block w-full rounded-xl border border-border bg-card p-5 transition-all hover:border-accent/30 hover:shadow-md"
+                >
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {item.label}
+                  </p>
+                  <p className="mt-1.5 flex items-center gap-2 text-xl font-semibold text-card-foreground">
+                    <Clock className="h-5 w-5 text-accent" />
+                    {item.time}
+                  </p>
+                  {displayLocation && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {displayLocation}
+                    </p>
+                  )}
+                </Link>
+              ) : (
+                <article
+                  key={item.label}
+                  className="w-full rounded-xl border border-border bg-card p-5 transition-all hover:border-accent/30 hover:shadow-md"
+                >
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {item.label}
+                  </p>
+                  <p className="mt-1.5 flex items-center gap-2 text-xl font-semibold text-card-foreground">
+                    <Clock className="h-5 w-5 text-accent" />
+                    {item.time}
+                  </p>
+                  {displayLocation && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {displayLocation}
+                    </p>
+                  )}
+                </article>
+              )
+            })}
           </div>
         </div>
       </div>
