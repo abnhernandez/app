@@ -1,12 +1,44 @@
 {
-  "name": "montesion-app",
+  "name": "monte-sion-app",
   "version": "0.0.0",
   "private": true,
+  "description": "Plataforma web moderna para comunidad cristiana con lecciones bíblicas, chat, peticiones de oración y administración",
+  "author": "Monte Sion Team <rootmontesion@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/montesion/monte-sion-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/montesion/monte-sion-app/issues"
+  },
+  "homepage": "https://github.com/montesion/monte-sion-app#readme",
+  "keywords": [
+    "nextjs",
+    "react",
+    "supabase",
+    "typescript",
+    "tailwindcss",
+    "church",
+    "bible",
+    "christian",
+    "community",
+    "pwa"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "rm -rf .next node_modules",
+    "postinstall": "echo 'Instalación completada. Ejecuta npm run dev para iniciar el servidor de desarrollo.'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
