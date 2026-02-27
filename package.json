@@ -31,7 +31,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/build.mjs",
+    "build": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=true BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
