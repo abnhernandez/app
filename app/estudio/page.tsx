@@ -2,12 +2,6 @@
 
 import { useEffect, useMemo } from "react";
 
-const ANDROID_URL =
-  "https://play.google.com/store/apps/details?id=com.sirma.mobile.bible.android&pcampaignid=web_share";
-const IOS_URL = "https://apps.apple.com/us/app/bible/id282935706";
-const DESKTOP_URL = "https://www.bible.com/app";
-const ORG_URL =
-  "https://www.bible.com/organizations/3f8db369-4fe0-4b8a-a2ce-3c84de8757db";
 const START_DATE = new Date("2026-01-28T00:00:00");
 const TOTAL_CHAPTERS = 28;
 const CHAPTERS_PER_DAY = 2;
@@ -50,24 +44,6 @@ export default function Home() {
   const chapters = useMemo(() => getDailyChapters(today), [today]);
   const primaryChapter = chapters[0] ?? 1;
   const redirectUrl = useMemo(() => CHAPTER_URL(primaryChapter), [primaryChapter]);
-  const deviceStoreUrl = useMemo(() => {
-    if (typeof navigator === "undefined") {
-      return DESKTOP_URL;
-    }
-
-    const ua = navigator.userAgent.toLowerCase();
-
-    if (ua.includes("android")) {
-      return ANDROID_URL;
-    }
-
-    if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) {
-      return IOS_URL;
-    }
-
-    return DESKTOP_URL;
-  }, []);
-
   useEffect(() => {
     if (typeof window === "undefined") {
       return;

@@ -31,7 +31,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=true BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true next build",
+    "build": "node scripts/build.mjs",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -82,6 +82,7 @@
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
     "exceljs": "^4.4.0",
+    "framer-motion": "^12.34.3",
     "input-otp": "1.4.1",
     "json2csv": "^5.0.7",
     "libphonenumber-js": "^1.12.35",

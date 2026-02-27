@@ -1,83 +1,98 @@
 "use client"
 
 import { Users } from "lucide-react"
-
-const speakers = [
-  {
-    name: "Erick Guzmán Cruz",
-    role: "Invitado Especial",
-    description:
-      "Compartirá su testimonio de vida y las decisiones que marcaron su camino de fe.",
-    initial: "E",
-  },
-  {
-    name: "Noemí Trujillo Rogel",
-    role: "Invitada Especial",
-    description:
-      "Junto a Erick, compartirán cómo las decisiones correctas transformaron su historia.",
-    initial: "N",
-  },
-]
+import { motion } from "framer-motion"
+import Image from "next/image"
 
 export function SpeakersSection() {
   return (
-    <section id="invitados" className="bg-background py-24 md:py-32">
+    <section
+      id="invitados"
+      className="relative overflow-hidden bg-[#071a14] py-28 md:py-40"
+    >
+      {/* Iluminación lateral */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-40 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="absolute -right-40 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full bg-amber-400/10 blur-[120px]" />
+      </div>
+
       <div className="mx-auto max-w-6xl px-6">
 
         {/* Header */}
-        <div className="text-center mb-20">
-          <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="mb-24 text-center">
+          <div className="mb-4 flex items-center justify-center gap-3">
             <Users className="size-4 text-primary" />
-            <span className="text-xs tracking-[0.35em] uppercase text-primary font-semibold">
-              Invitados Especiales
+            <span className="text-xs font-semibold uppercase tracking-[0.45em] text-primary/80">
+              Matrimonio Invitado
             </span>
           </div>
 
-          <h2 className="font-serif text-4xl md:text-5xl font-bold text-foreground">
-            Conoce a los ponentes
+          {/* 🔥 Fire Animated Title */}
+          <h2 className="font-serif text-4xl md:text-6xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-500 to-red-500 animate-fire">
+            Voces que marcarán tu historia
           </h2>
-
-          <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
-            Personas reales, historias reales, decisiones reales que marcaron su destino.
-          </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid gap-10 md:grid-cols-2 max-w-4xl mx-auto">
+        {/* Layout */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+          viewport={{ once: true }}
+          className="grid items-center gap-20 md:grid-cols-2"
+        >
 
-          {speakers.map((speaker, index) => (
-            <div
-              key={index}
-              className="group relative rounded-2xl border border-border bg-card p-10 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/40"
-            >
-              {/* Avatar */}
-              <div className="mx-auto size-24 rounded-full bg-primary/10 flex items-center justify-center mb-8 transition-all duration-300 group-hover:bg-primary/20">
-                <span className="font-serif text-3xl font-bold text-primary">
-                  {speaker.initial}
-                </span>
-              </div>
+          {/* Imagen */}
+          <div className="relative overflow-hidden rounded-[32px] border border-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
+            <Image
+              src="/avatar.svg"
+              alt="Erick Guzmán Cruz & Noemí Trujillo Rogel"
+              width={1200}
+              height={1600}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="h-[420px] w-full object-cover md:h-[540px]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-black/20 to-transparent" />
+          </div>
 
-              {/* Name */}
-              <h3 className="font-serif text-2xl font-semibold text-foreground">
-                {speaker.name}
-              </h3>
+          {/* Contenido */}
+          <div>
 
-              {/* Role */}
-              <p className="mt-1 text-sm uppercase tracking-wide text-muted-foreground">
-                {speaker.role}
-              </p>
+            <p className="mb-5 text-[11px] uppercase tracking-[0.4em] text-primary/80">
+              Matrimonio Invitado
+            </p>
 
-              {/* Divider */}
-              <div className="mt-6 h-px w-16 mx-auto bg-primary/30 transition-all duration-300 group-hover:w-24" />
+            <h3 className="font-serif text-3xl md:text-5xl font-semibold leading-[1.1] tracking-tight text-white">
+              Erick Guzmán Cruz{" "}
+              <br className="hidden md:block" />
+              <motion.span
+                initial={{ opacity: 0, scale: 0.6 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="inline-block text-primary mx-2"
+              >
+                &
+              </motion.span>
+              Noemí Trujillo Rogel
+            </h3>
 
-              {/* Description */}
-              <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-                {speaker.description}
-              </p>
-            </div>
-          ))}
+            <div className="mt-8 h-[2px] w-16 bg-primary/60" />
 
-        </div>
+            <p className="mt-10 max-w-lg text-base leading-relaxed text-white/75">
+              Un matrimonio que compartirá un testimonio que ha impactado a muchos.
+              Una historia real que demuestra que cuando Dios toma el control,
+              la vida cambia de dirección y el propósito se vuelve claro.
+              <br /><br />
+              No es teoría, no es motivación pasajera — es evidencia del poder
+              de Dios obrando en lo cotidiano, en las decisiones, en la fe perseverante.
+              <br /><br />
+              “Si alguno está en Cristo, nueva criatura es” (2 Corintios 5:17).
+              “Fiel es el que os llama, el cual también lo hará”
+              (1 Tesalonicenses 5:24).
+            </p>
+
+          </div>
+        </motion.div>
       </div>
     </section>
   )

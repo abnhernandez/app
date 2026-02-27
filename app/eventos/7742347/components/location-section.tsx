@@ -1,8 +1,22 @@
 "use client"
 
-import { MapPin, Navigation, Clock } from "lucide-react"
+import { useState } from "react"
+import { MapPin, Navigation } from "lucide-react"
+import { openRouteToChurch } from "@/lib/rutas-client"
 
 export function LocationSection() {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleGetDirections = async () => {
+    setIsLoading(true)
+    await openRouteToChurch({
+      saveUserLocation: true,
+      fallbackToDestinationOnlyOnError: true,
+      routeDepartureUnixSeconds: 1772298000,
+    })
+    setIsLoading(false)
+  }
+
   return (
     <section id="ubicacion" className="bg-background py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
@@ -66,17 +80,15 @@ export function LocationSection() {
 
             {/* CTA Button */}
             <div className="pt-6">
-              <a
-                href="https://maps.app.goo.gl/dpToTNDtef24EMhF6"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
+              <button
+                onClick={handleGetDirections}
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-300 hover:scale-[1.03] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <Navigation className="size-4" />
-                Abrir en Google Maps
-              </a>
+                {isLoading ? "Abriendo ruta..." : "¿Cómo llegar?"}
+              </button>
             </div>
-
           </div>
 
           {/* Right Side - Map */}
@@ -93,7 +105,6 @@ export function LocationSection() {
               className="w-full"
             />
           </div>
-
         </div>
       </div>
     </section>

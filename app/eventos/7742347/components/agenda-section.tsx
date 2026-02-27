@@ -1,239 +1,336 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { CalendarDays, Clock3, MapPin, Timer } from "lucide-react"
+import { useState, useMemo } from "react"
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  ChevronDown,
+  Mic2,
+  Music,
+  HandHeart,
+  Users,
+  MessageCircleHeart,
+  Sparkles,
+  Coffee,
+  LogOut,
+  Hand,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
-/* ===============================
-   CONFIGURACIÓN DEL EVENTO
-   =============================== */
+/* Types */
 
-const EVENT_DATE = new Date(2026, 1, 28) // 28 Feb 2026
-const LOCATION = "Iglesia Monte Sion"
+type EventCategory =
+  | "welcome"
+  | "prayer"
+  | "worship"
+  | "presentation"
+  | "testimony"
+  | "activity"
+  | "break"
+  | "closing"
 
-type AgendaItem = {
+interface AgendaEvent {
   id: string
+  startTime: string
+  endTime: string
   title: string
-  speaker?: string | null
-  start: string
-  end: string
-  block: string
-  highlight?: boolean
+  host: string
+  category: EventCategory
+  description?: string
+  durationMin: number
 }
 
-const AGENDA_ITEMS: AgendaItem[] = [
-  { id: "1", start: "06:00 PM", end: "06:10 PM", title: "Bienvenida / Intro", speaker: "Abner y Aidee", block: "Inicio" },
-  { id: "2", start: "06:10 PM", end: "06:15 PM", title: "Oración", speaker: "Sofia", block: "Inicio" },
-  { id: "3", start: "06:15 PM", end: "06:45 PM", title: "Alabanza", speaker: "Daniel", block: "Inicio" },
-  { id: "4", start: "06:45 PM", end: "06:50 PM", title: "Presentación de invitados", speaker: "Sofia", block: "Inicio" },
+/* DATA igual que el tuyo */
 
-  { id: "5", start: "06:50 PM", end: "08:00 PM", title: "Testimonio", speaker: "Erick y Noemí", block: "Momento principal", highlight: true },
-  { id: "6", start: "08:00 PM", end: "08:10 PM", title: "Oración", speaker: "Erick", block: "Momento principal" },
-
-  { id: "7", start: "08:10 PM", end: "08:15 PM", title: "Invitación a la dinámica", speaker: "Sofia", block: "Cierre y convivencia" },
-  { id: "8", start: "08:15 PM", end: "08:30 PM", title: "Dinámica", speaker: "Oswaldo y Joselyn", block: "Cierre y convivencia" },
-  { id: "9", start: "08:30 PM", end: "08:32 PM", title: "Despedida", speaker: "Sofia", block: "Cierre y convivencia" },
-  { id: "10", start: "08:32 PM", end: "09:00 PM", title: "Refrigerio", block: "Cierre y convivencia" },
-  { id: "11", start: "09:00 PM", end: "09:10 PM", title: "Cierre", block: "Cierre y convivencia" },
+const EVENTS: AgendaEvent[] = [
+  {
+    id: "1",
+    startTime: "6:00 PM",
+    endTime: "6:10 PM",
+    title: "Bienvenida / Intro",
+    host: "Abner y Aidee",
+    category: "welcome",
+    description: "Apertura del evento y bienvenida a todos los asistentes",
+    durationMin: 10,
+  },
+  {
+    id: "2",
+    startTime: "6:10 PM",
+    endTime: "6:15 PM",
+    title: "Oración",
+    host: "Sofia",
+    category: "prayer",
+    description: "Momento de oración para consagrar el evento",
+    durationMin: 5,
+  },
+  {
+    id: "3",
+    startTime: "6:15 PM",
+    endTime: "6:45 PM",
+    title: "Alabanza",
+    host: "Daniel",
+    category: "worship",
+    description: "Tiempo de alabanza y adoración",
+    durationMin: 30,
+  },
+  {
+    id: "4",
+    startTime: "6:45 PM",
+    endTime: "6:50 PM",
+    title: "Presentación de invitados",
+    host: "Sofia",
+    category: "presentation",
+    description:
+      "Presentación de los hermanos invitados. Invitación a acomodar cada quien las sillas.",
+    durationMin: 5,
+  },
+  {
+    id: "5",
+    startTime: "6:50 PM",
+    endTime: "8:00 PM",
+    title: "Testimonio",
+    host: "Erick y Noemi",
+    category: "testimony",
+    description: "Testimonio de los hermanos Erick y Noemi",
+    durationMin: 70,
+  },
+  {
+    id: "6",
+    startTime: "8:00 PM",
+    endTime: "8:10 PM",
+    title: "Oración",
+    host: "Erick",
+    category: "prayer",
+    description: "Oración por el hermano Erick",
+    durationMin: 10,
+  },
+  {
+    id: "7",
+    startTime: "8:10 PM",
+    endTime: "8:15 PM",
+    title: "Invitación a la dinámica",
+    host: "Sofia",
+    category: "presentation",
+    description: "Introducción y explicación de la dinámica",
+    durationMin: 5,
+  },
+  {
+    id: "8",
+    startTime: "8:15 PM",
+    endTime: "8:30 PM",
+    title: "Dinámica",
+    host: "Oswaldo y Joselyn",
+    category: "activity",
+    description: "Actividad dinámica grupal",
+    durationMin: 15,
+  },
+  {
+    id: "9",
+    startTime: "8:30 PM",
+    endTime: "8:32 PM",
+    title: "Despedida",
+    host: "Sofia",
+    category: "closing",
+    description: "Palabras de cierre y despedida",
+    durationMin: 2,
+  },
+  {
+    id: "10",
+    startTime: "8:32 PM",
+    endTime: "9:00 PM",
+    title: "Refrigerio",
+    host: "",
+    category: "break",
+    description: "Convivencia y refrigerio",
+    durationMin: 28,
+  },
+  {
+    id: "11",
+    startTime: "9:00 PM",
+    endTime: "9:10 PM",
+    title: "Cierre",
+    host: "",
+    category: "closing",
+    description: "Cierre oficial del evento",
+    durationMin: 10,
+  },
 ]
 
-/* ===============================
-   COMPONENTE
-   =============================== */
+/* Category Config igual */
 
-export function AgendaSection() {
-  const [now, setNow] = useState(new Date())
-  const currentRef = useRef<HTMLDivElement | null>(null)
+const CATEGORY_CONFIG = {
+  welcome: { icon: Hand, label: "Bienvenida", color: "text-amber-400" },
+  prayer: { icon: HandHeart, label: "Oración", color: "text-sky-400" },
+  worship: { icon: Music, label: "Alabanza", color: "text-rose-400" },
+  presentation: { icon: Mic2, label: "Presentación", color: "text-violet-400" },
+  testimony: { icon: MessageCircleHeart, label: "Testimonio", color: "text-orange-400" },
+  activity: { icon: Sparkles, label: "Dinámica", color: "text-emerald-400" },
+  break: { icon: Coffee, label: "Refrigerio", color: "text-stone-400" },
+  closing: { icon: LogOut, label: "Cierre", color: "text-zinc-400" },
+}
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(new Date())
-    }, 60000)
-    return () => clearInterval(interval)
+export default function Agenda() {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const totalDuration = useMemo(
+    () => EVENTS.reduce((sum, e) => sum + e.durationMin, 0),
+    []
+  )
+
+  const participants = useMemo(() => {
+    return new Set(
+      EVENTS.flatMap((event) =>
+        event.host
+          .split(" y ")
+          .map((name) => name.trim())
+          .filter(Boolean)
+      )
+    ).size
   }, [])
 
-  function buildDate(time: string) {
-    const [hourMinute, period] = time.split(" ")
-    let [hours, minutes] = hourMinute.split(":").map(Number)
-
-    if (period === "PM" && hours !== 12) hours += 12
-    if (period === "AM" && hours === 12) hours = 0
-
-    const date = new Date(EVENT_DATE)
-    date.setHours(hours, minutes, 0, 0)
-    return date
-  }
-
-  const enrichedItems = useMemo(() => {
-    const mapped = AGENDA_ITEMS.map((item) => {
-      const startTime = buildDate(item.start)
-      const endTime = buildDate(item.end)
-
-      return {
-        ...item,
-        startTime,
-        endTime,
-        isCurrent: now >= startTime && now <= endTime,
-        isPast: now > endTime,
-        isFuture: now < startTime,
-        duration:
-          (endTime.getTime() - startTime.getTime()) / 60000,
-      }
-    })
-
-    return mapped.sort(
-      (a, b) => a.startTime.getTime() - b.startTime.getTime()
-    )
-  }, [now])
-
-  const blocks = [...new Set(enrichedItems.map((i) => i.block))]
-
-  const eventStart = enrichedItems[0].startTime
-  const eventEnd =
-    enrichedItems[enrichedItems.length - 1].endTime
-
-  const progress =
-    ((now.getTime() - eventStart.getTime()) /
-      (eventEnd.getTime() - eventStart.getTime())) *
-    100
-
-  useEffect(() => {
-    const currentItem = enrichedItems.find((i) => i.isCurrent)
-    if (currentItem && currentRef.current) {
-      currentRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      })
-    }
-  }, [enrichedItems])
+  const hours = Math.floor(totalDuration / 60)
+  const mins = totalDuration % 60
 
   return (
-    <section id="agenda" className="bg-background py-20">
-      <div className="mx-auto max-w-3xl px-6">
+    <div className="min-h-screen bg-[#071a14] text-white">
+      
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#071a14]/80 backdrop-blur-2xl">
+        <div className="mx-auto max-w-6xl px-4 py-6 md:px-8 text-center">
+          <p className="text-xs uppercase tracking-[0.4em] text-primary/80">
+            Orden y Propósito
+          </p>
 
-        {/* Progress */}
-        <div className="mb-8 h-1 w-full bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all duration-500"
-            style={{
-              width: `${Math.min(Math.max(progress, 0), 100)}%`,
-            }}
-          />
-        </div>
+          <h1 className="mt-3 font-serif text-2xl md:text-3xl font-semibold tracking-tight">
+            Itinerario del Encuentro
+          </h1>
 
-        {/* Header */}
-        <div className="mb-14 text-center">
-          <h2 className="text-4xl font-serif font-bold">
-            Agenda del evento
-          </h2>
-
-          <p className="mt-3 text-sm text-muted-foreground">
-            {EVENT_DATE.toLocaleDateString("es-MX", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })} · {LOCATION}
+          <p className="mt-3 text-sm text-white/60 max-w-xl mx-auto">
+            “Hágase todo decentemente y con orden.” — 1 Corintios 14:40
           </p>
         </div>
+      </header>
 
-        {/* Info */}
-        <div className="mb-12 grid grid-cols-2 gap-6 text-sm md:grid-cols-4">
-          <Info icon={<CalendarDays size={16} />} text="Evento especial" />
-          <Info icon={<MapPin size={16} />} text={LOCATION} />
-          <Info icon={<Clock3 size={16} />} text={AGENDA_ITEMS[0].start} />
-          <Info
-            icon={<Timer size={16} />}
-            text={`${Math.round(
-              (eventEnd.getTime() - eventStart.getTime()) / 60000
-            )} min`}
-          />
-        </div>
+      <main className="mx-auto max-w-6xl px-4 py-12 md:px-8">
+        <div className="grid gap-12 lg:grid-cols-[380px_minmax(0,1fr)]">
 
-        {/* Timeline */}
-        <div className="relative border-l border-border pl-6">
+          {/* Sidebar */}
+          <aside className="space-y-6 lg:sticky lg:top-28">
 
-          {blocks.map((block) => (
-            <div key={block} className="mb-12">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-semibold">Sábado, 28 de febrero</p>
+                  <p className="text-sm text-white/60">
+                    6:00 PM — 9:10 PM
+                  </p>
+                </div>
+              </div>
 
-              <h3 className="mb-6 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                {block}
-              </h3>
-
-              <div className="space-y-6">
-                {enrichedItems
-                  .filter((item) => item.block === block)
-                  .map((item) => {
-                    const stateStyle = item.isCurrent
-                      ? "bg-green-500/10 border border-green-500/30 scale-[1.02]"
-                      : item.isPast
-                      ? "opacity-40"
-                      : ""
-
-                    return (
-                      <div
-                        key={item.id}
-                        ref={item.isCurrent ? currentRef : null}
-                        className="relative transition-all duration-300"
-                      >
-                        <span
-                          className={`absolute -left-[31px] top-2 size-3 rounded-full border-2 ${
-                            item.isCurrent
-                              ? "bg-green-500 border-green-500 animate-pulse"
-                              : item.highlight
-                              ? "bg-primary border-primary"
-                              : "bg-background border-border"
-                          }`}
-                        />
-
-                        <div
-                          className={`rounded-xl p-4 transition-all duration-300 hover:bg-muted/40 ${stateStyle}`}
-                        >
-                          <span className="text-xs text-muted-foreground">
-                            {item.start} - {item.end} · ⏱ {item.duration} min
-                          </span>
-
-                          <h4
-                            className={`mt-1 text-lg font-semibold ${
-                              item.highlight ? "text-primary" : ""
-                            }`}
-                          >
-                            {item.title}
-                          </h4>
-
-                          {item.speaker && (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {item.speaker}
-                            </p>
-                          )}
-
-                          {item.isCurrent && (
-                            <span className="mt-2 inline-block text-xs font-medium text-green-600">
-                              En este momento
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
+              <div className="mt-4 flex items-center gap-2 text-sm text-white/60">
+                <MapPin className="h-4 w-4 text-primary" />
+                Iglesia Monte Sion
               </div>
             </div>
-          ))}
+
+            <div className="grid grid-cols-3 gap-4">
+              <Stat label="Actividades" value={EVENTS.length} />
+              <Stat label="Duración" value={`${hours}h ${mins}m`} />
+              <Stat label="Participantes" value={participants} />
+            </div>
+          </aside>
+
+          {/* Timeline */}
+          <section className="space-y-4">
+            {EVENTS.map((event) => {
+              const config = CATEGORY_CONFIG[event.category as EventCategory]
+              const Icon = config.icon
+              const isExpanded = expandedId === event.id
+
+              return (
+                <div
+                  key={event.id}
+                  className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 md:hover:-translate-y-1 md:hover:bg-white/10"
+                >
+                  <button
+                    onClick={() =>
+                      setExpandedId(isExpanded ? null : event.id)
+                    }
+                    className="w-full px-4 py-5 text-left md:px-6"
+                  >
+                    <div className="flex items-start gap-3">
+
+                      <div className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-full",
+                        config.color
+                      )}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 text-xs text-white/50">
+                          <Clock className="h-3 w-3" />
+                          {event.startTime} — {event.endTime}
+                        </div>
+
+                        <h3 className="mt-1 font-semibold md:text-lg">
+                          {event.title}
+                        </h3>
+
+                        {event.host && (
+                          <div className="mt-1 flex items-center gap-1 text-xs text-white/60">
+                            <Users className="h-3 w-3" />
+                            {event.host}
+                          </div>
+                        )}
+                      </div>
+
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 text-white/40 transition-transform",
+                          isExpanded && "rotate-180"
+                        )}
+                      />
+                    </div>
+
+                    <div
+                      className={cn(
+                        "grid transition-all duration-300",
+                        isExpanded
+                          ? "grid-rows-[1fr] opacity-100 mt-4"
+                          : "grid-rows-[0fr] opacity-0"
+                      )}
+                    >
+                      <div className="overflow-hidden text-sm text-white/60">
+                        {event.description}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )
+            })}
+          </section>
         </div>
-      </div>
-    </section>
+      </main>
+    </div>
   )
 }
 
-function Info({
-  icon,
-  text,
+function Stat({
+  label,
+  value,
 }: {
-  icon: React.ReactNode
-  text: string
+  label: string
+  value: string | number | React.ReactNode
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-primary">{icon}</span>
-      <span>{text}</span>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+      <p className="text-lg font-bold">{value}</p>
+      <p className="mt-1 text-[10px] uppercase tracking-widest text-white/50">
+        {label}
+      </p>
     </div>
   )
 }

@@ -6,84 +6,88 @@ export function HeroSection() {
   return (
     <section
       id="inicio"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background px-6"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#071a14] px-6"
     >
-      {/* Decorative gradient glow */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.12),transparent_70%)]" />
+      {/* Iluminación sutil coherente con Speakers */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-40 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="absolute -right-40 top-1/2 h-[600px] w-[600px] -translate-y-1/2 rounded-full bg-amber-400/10 blur-[120px]" />
+      </div>
 
-      <div className="mx-auto max-w-6xl grid lg:grid-cols-2 gap-16 items-center">
+      <div className="mx-auto max-w-6xl text-center text-white">
 
-        {/* LEFT SIDE - TEXT */}
-        <div className="text-center lg:text-left max-w-xl mx-auto lg:mx-0">
+        {/* Overline */}
+        <p className="mb-10 text-xs font-semibold uppercase tracking-[0.5em] text-primary/80">
+          CADA DECISIÓN DEFINE TU FUTURO
+        </p>
 
-          {/* Overline / Lema */}
-          <p className="text-xs tracking-[0.35em] uppercase text-primary font-semibold mb-6 drop-shadow-[0_0_8px_rgba(212,175,55,0.6)]">
-            CADA DECISIÓN DEFINE TU FUTURO
-          </p>
+        {/* Title */}
+        <h1
+          className="relative font-serif text-4xl md:text-6xl lg:text-7xl 
+          font-semibold leading-[1.05] tracking-tight"
+        >
+          <span className="block">
+            Las decisiones más importantes
+          </span>
 
-          {/* Title */}
-          <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight text-foreground drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-            Las decisiones más importantes <br /> de tu vida
-          </h1>
+          <span className="relative mt-6 block text-primary">
+            de tu vida
 
-          {/* Description */}
-          <p className="mt-6 text-muted-foreground leading-relaxed">
-            Un encuentro diseñado para ayudarte a tomar decisiones que definirán tu propósito, fortalecerán tu fe y transformarán tu futuro.
-          </p>
+            {/* Apple Energy Line */}
+            <span className="apple-underline" />
+          </span>
+        </h1>
 
-          {/* Event Info */}
-          <div className="mt-10 flex flex-wrap justify-center lg:justify-start gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="size-4 text-primary" />
-              <span>Sábado, 28 de febrero</span>
-            </div>
+        {/* Description */}
+        <p className="mt-12 mx-auto max-w-2xl text-base md:text-lg text-white/70 leading-relaxed">
+          Un encuentro diseñado para ayudarte a tomar decisiones que definirán
+          tu propósito, fortalecerán tu fe y transformarán tu futuro.
+        </p>
 
-            <div className="flex items-center gap-2">
-              <Clock className="size-4 text-primary" />
-              <span>6:00 PM</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <MapPin className="size-4 text-primary" />
-              <span>Iglesia Monte Sion</span>
-            </div>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <a
-              href="#agenda"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)]"
-            >
-              Ver agenda
-              <ArrowDown className="size-4" />
-            </a>
-
-            <a
-              href="https://maps.app.goo.gl/dpToTNDtef24EMhF6"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full border border-border px-8 py-3 text-sm font-medium transition-all duration-300 hover:border-primary hover:text-primary"
-            >
-              Cómo llegar
-            </a>
-          </div>
+        {/* Event Info */}
+        <div className="mt-14 flex flex-wrap justify-center gap-4">
+          <InfoPill icon={<CalendarDays />} text="Sábado, 28 de febrero" />
+          <InfoPill icon={<Clock />} text="6:00 PM" />
+          <InfoPill icon={<MapPin />} text="Iglesia Monte Sion" />
         </div>
 
-        {/* RIGHT SIDE - AVATAR */}
-        <div className="flex justify-center">
-          <div className="relative max-w-md rounded-2xl border border-border bg-card backdrop-blur-sm shadow-2xl shadow-primary/20 p-6">
-            <img
-              src="/avatar.svg"
-              alt="Invitados especiales Erick Guzman Cruz y Noemi Trujillo Rogel"
-              className="rounded-xl object-cover w-full h-[360px] md:h-[420px] transition-transform duration-500 hover:scale-[1.03] cursor-pointer"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
+        {/* CTA */}
+        <div className="mt-16 flex flex-col sm:flex-row justify-center gap-6">
+          <a
+            href="#agenda"
+            className="group inline-flex items-center justify-center gap-2 
+            rounded-full bg-primary px-10 py-4 text-base font-semibold 
+            text-black transition-all duration-300 hover:scale-105"
+          >
+            Ver agenda
+            <ArrowDown className="size-4 transition-transform duration-300 group-hover:translate-y-1" />
+          </a>
+
+          <a
+            href="https://maps.app.goo.gl/dpToTNDtef24EMhF6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center 
+            rounded-full border border-white/20 px-10 py-4 
+            text-base font-medium transition-all duration-300 
+            hover:border-primary hover:text-primary"
+          >
+            Cómo llegar
+          </a>
         </div>
 
       </div>
     </section>
+  )
+}
+
+function InfoPill({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-full 
+    border border-white/10 bg-white/5 backdrop-blur-md 
+    px-6 py-3 text-sm text-white/80">
+      <span className="size-4 text-primary">{icon}</span>
+      <span>{text}</span>
+    </div>
   )
 }

@@ -1,8 +1,7 @@
 declare module "react-phone-number-input" {
   import type { ComponentType, InputHTMLAttributes } from "react"
 
-  export interface CountrySelectProps
-    extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+  export type CountrySelectProps = React.SelectHTMLAttributes<HTMLSelectElement>
 
   export interface PhoneInputProps {
     value?: string

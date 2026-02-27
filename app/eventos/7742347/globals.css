@@ -34,6 +34,7 @@
   --ring: oklch(0.84 0.12 85);
 
   --radius: 0.75rem;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -71,11 +72,19 @@
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html, body {
+    min-height: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3 {
@@ -84,6 +93,15 @@
 
   p {
     @apply text-muted-foreground leading-relaxed;
+  }
+
+  img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input, button, textarea, select {
+    font: inherit;
   }
 }
 
@@ -97,6 +115,16 @@
   animation: float 6s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-float {
+    animation: none;
+  }
+}
+
 /* Subtle cinematic grain (optional but elite) */
 body::before {
   content: "";
@@ -105,4 +133,10 @@ body::before {
   pointer-events: none;
   opacity: 0.03;
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+  body::before {
+    opacity: 0.02;
+  }
 }

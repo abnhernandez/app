@@ -2,67 +2,31 @@
 
 import { useState } from "react"
 import { MapPin, Navigation, Loader2 } from "lucide-react"
-
-const CHURCH_COORDS = {
-  lat: 17.077605,
-  lng: -96.762161,
-}
+import { openDestinationOnlyRoute, openRouteToChurch } from "@/lib/rutas-client"
 
 export function RouteToChurch() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleGetRoute = () => {
+  const handleGetRoute = async () => {
     setLoading(true)
     setError(null)
 
-    if (!navigator.geolocation) {
-      setError("Tu navegador no soporta geolocalización")
-      setLoading(false)
-      return
+    const result = await openRouteToChurch({
+      accuracyThresholdMeters: 100,
+      saveUserLocation: true,
+      fallbackToDestinationOnlyOnError: false,
+    })
+
+    if (result.errorMessage) {
+      setError(result.errorMessage)
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords
-
-        // Check accuracy
-        if (accuracy > 100) {
-          setError(
-            `Ubicación poco precisa (${Math.round(accuracy)}m). Activa el GPS para mejor precisión.`
-          )
-          setLoading(false)
-          return
-        }
-
-        // Open Google Maps with directions
-        const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${CHURCH_COORDS.lat},${CHURCH_COORDS.lng}&travelmode=driving`
-        window.open(mapsUrl, "_blank", "noopener,noreferrer")
-        setLoading(false)
-      },
-      (err) => {
-        let errorMessage = "No pudimos obtener tu ubicación"
-        if (err.code === 1) {
-          errorMessage = "Permiso de ubicación denegado"
-        } else if (err.code === 2) {
-          errorMessage = "Ubicación no disponible"
-        } else if (err.code === 3) {
-          errorMessage = "Tiempo de espera agotado"
-        }
-        setError(errorMessage)
-        setLoading(false)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-      }
-    )
+    setLoading(false)
   }
 
   const handleOpenMapsDirectly = () => {
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${CHURCH_COORDS.lat},${CHURCH_COORDS.lng}&travelmode=driving`
-    window.open(mapsUrl, "_blank", "noopener,noreferrer")
+    openDestinationOnlyRoute()
   }
 
   return (
