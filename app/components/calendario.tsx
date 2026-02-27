@@ -1,49 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import useSWR from "swr";
 import Evento from "./evento";
-import { getSupabaseClient } from "@/lib/supabase";
-
-/* =======================
-   Tipos
-======================= */
-
-export type EventoItem = {
-  id: string;
-  fecha: string;
-  title: string;
-  subject: string;
-  teacher: string;
-  startTime: string;
-  endTime: string;
-  tags?: string[];
-};
-
-type EventoDbRow = {
-  id?: string | number;
-  fecha?: string;
-  date?: string;
-  dia?: string;
-  day?: string;
-  title?: string;
-  titulo?: string;
-  nombre?: string;
-  subject?: string;
-  materia?: string;
-  tema?: string;
-  teacher?: string;
-  maestro?: string;
-  profesor?: string;
-  start_time?: string;
-  hora_inicio?: string;
-  inicio?: string;
-  end_time?: string;
-  hora_fin?: string;
-  fin?: string;
-  tags?: string[] | null;
-  etiquetas?: string[] | null;
-};
+import type { EventoItem } from "@/lib/eventos-types";
 
 /* =======================
    Utilidades
@@ -96,44 +55,11 @@ type Props = {
   categoria?: string;
 };
 
-const normalizeEvento = (row: EventoDbRow): EventoItem | null => {
-  const fecha = row.fecha ?? row.date ?? row.dia ?? row.day ?? "";
-  if (!fecha) return null;
-
-  return {
-    id: String(row.id ?? `${fecha}-${row.title ?? row.titulo ?? "evento"}`),
-    fecha,
-    title: row.title ?? row.titulo ?? row.nombre ?? "Evento",
-    subject: row.subject ?? row.materia ?? row.tema ?? "",
-    teacher: row.teacher ?? row.maestro ?? row.profesor ?? "",
-    startTime: row.start_time ?? row.hora_inicio ?? row.inicio ?? "",
-    endTime: row.end_time ?? row.hora_fin ?? row.fin ?? "",
-    tags: row.tags ?? row.etiquetas ?? [],
-  };
-};
-
-const fetcher = async (): Promise<EventoItem[]> => {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("eventos")
-    .select("*")
-    .order("fecha", { ascending: true });
-
-  if (error) throw error;
-
-  return (data ?? [])
-    .map((row: EventoDbRow) => normalizeEvento(row))
-    .filter((row: EventoItem | null): row is EventoItem => Boolean(row));
-};
-
 export default function CalendarioSemanal({
-  eventos,
-  titulo = "Calendario Semanal",
+  eventos = [],
+  titulo = "Calendario",
   categoria = "GENERAL",
 }: Props) {
-  const { data: eventosDb, error, isLoading } = useSWR("eventos", fetcher, {
-    revalidateOnFocus: false,
-  });
   const [mostrarPasados, setMostrarPasados] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
 
@@ -142,25 +68,20 @@ export default function CalendarioSemanal({
     setNow(new Date());
   }, []);
 
-  const dataSource = useMemo(
-    () => eventos ?? eventosDb ?? [],
-    [eventos, eventosDb]
-  );
-
   const visibles = useMemo(
     () =>
       now
         ? mostrarPasados
-          ? dataSource
-          : dataSource.filter((e: EventoItem) => !isPastEvent(e, now))
-        : dataSource,
-    [dataSource, mostrarPasados, now]
+          ? eventos
+          : eventos.filter((e: EventoItem) => !isPastEvent(e, now))
+        : eventos,
+    [eventos, mostrarPasados, now]
   );
 
   const grupos = useMemo(() => groupByDay(visibles), [visibles]);
 
   return (
-    <section className="w-full max-w-5xl mx-auto px-4 py-6 bg-background text-foreground">
+    <section className="w-full px-4 py-6 bg-background text-foreground">
       {/* Header */}
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-foreground">
@@ -181,17 +102,7 @@ export default function CalendarioSemanal({
 
       {/* Eventos */}
       <div className="flex flex-col gap-4">
-        {isLoading && (
-          <p className="text-sm text-muted-foreground">Cargando eventos...</p>
-        )}
-
-        {!!error && !eventosDb && (
-          <p className="text-sm text-muted-foreground">
-            No se pudieron cargar los eventos.
-          </p>
-        )}
-
-        {grupos.length === 0 && !isLoading && (
+        {grupos.length === 0 && (
           <p className="text-sm text-muted-foreground">
             No hay eventos para mostrar.
           </p>

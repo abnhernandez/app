@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+process.env.BROWSERSLIST_IGNORE_OLD_DATA ??= "true";
+process.env.BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA ??= "true";
+
+const nextConfig: NextConfig = {
+	turbopack: {
+		root: process.cwd(),
+	},
+};
 
 export default nextConfig;

@@ -1,12 +1,13 @@
-"use client"
-
 import Link from "next/link"
 import { Home } from "lucide-react"
 import Calendario from "@/app/components/calendario"
+import { getEventos } from "@/lib/eventos-actions"
 
-export default function EventosPage() {
+export default async function EventosPage() {
+  const eventos = await getEventos()
+
   return (
-    <main className="min-h-screen px-4 py-10">
+    <main className="px-4 py-10">
       <div className="mx-auto w-full max-w-5xl space-y-6">
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Eventos</h1>
@@ -20,7 +21,7 @@ export default function EventosPage() {
         </header>
 
         <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-6">
-          <Calendario />
+          <Calendario eventos={eventos} />
         </section>
       </div>
     </main>
