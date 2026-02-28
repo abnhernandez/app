@@ -97,6 +97,30 @@ export default async function AgendaPage() {
             Duración total: {hours}h {mins}m
           </p>
         </div>
+                
+        {/* BUTTONS PDF & JPG */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href="https://bplojzsfddhfqnygvomh.supabase.co/storage/v1/object/public/PDFs/itinerario.pdf"
+            download
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8m0 8l-9-2m9 2l9-2m-9-8l9 18m-9-18l-9-2m9 18v-8" />
+            </svg>
+            Descargar PDF
+          </a>
+          <a
+            href="https://bplojzsfddhfqnygvomh.supabase.co/storage/v1/object/public/PDFs/itinerario.jpeg"
+            download
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-background px-6 py-3 text-sm font-medium text-primary hover:bg-primary/5 active:scale-95 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Descargar JPG
+          </a>
+        </div>
 
         {/* TABLE */}
         <div className="mt-16 overflow-x-auto rounded-xl border border-border">
