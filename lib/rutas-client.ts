@@ -38,23 +38,105 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
   })
 }
 
-export async function openRouteToChurch() {
-  if (!navigator.geolocation) {
-    throw new Error("Tu navegador no soporta geolocalización")
+export type OpenRouteToChurchOptions = {
+  accuracyThresholdMeters?: number
+  saveUserLocation?: boolean
+  fallbackToDestinationOnlyOnError?: boolean
+}
+
+export type OpenRouteToChurchResult = {
+  opened: boolean
+  usedFallback: boolean
+  errorMessage: string | null
+}
+
+function buildDestinationOnlyUrl() {
+  return `https://www.google.com/maps/search/?api=1&query=${CHURCH_COORDS.lat},${CHURCH_COORDS.lng}`
+}
+
+export function openDestinationOnlyRoute() {
+  window.open(buildDestinationOnlyUrl(), "_blank", "noopener,noreferrer")
+}
+
+function createResult({
+  opened,
+  usedFallback,
+  errorMessage,
+}: OpenRouteToChurchResult): OpenRouteToChurchResult {
+  return { opened, usedFallback, errorMessage }
+}
+
+function createError(message: string) {
+  return new Error(message)
+}
+
+function handleRouteError(
+  error: unknown,
+  options?: OpenRouteToChurchOptions,
+): OpenRouteToChurchResult {
+  const fallbackToDestinationOnlyOnError = options?.fallbackToDestinationOnlyOnError ?? false
+  const message = error instanceof Error ? error.message : "Ocurrió un error inesperado"
+
+  if (fallbackToDestinationOnlyOnError) {
+    openDestinationOnlyRoute()
+    return createResult({
+      opened: true,
+      usedFallback: true,
+      errorMessage: message,
+    })
   }
 
-  const position = await getCurrentPosition()
-  const { latitude, longitude } = position.coords
+  if (options) {
+    return createResult({
+      opened: false,
+      usedFallback: false,
+      errorMessage: message,
+    })
+  }
 
-  await guardarUbicacionUsuario({
-    userLat: latitude,
-    userLng: longitude,
-  })
+  throw createError(message)
+}
 
-  const mapsUrl = buildEventDirectionsUrl({
-    originLat: latitude,
-    originLng: longitude,
-  })
+export async function openRouteToChurch(
+  options?: OpenRouteToChurchOptions,
+): Promise<OpenRouteToChurchResult> {
+  const accuracyThresholdMeters = options?.accuracyThresholdMeters
+  const saveUserLocation = options?.saveUserLocation ?? true
 
-  window.open(mapsUrl, "_blank", "noopener,noreferrer")
+  try {
+    if (!navigator.geolocation) {
+      throw createError("Tu navegador no soporta geolocalización")
+    }
+
+    const position = await getCurrentPosition()
+    const { latitude, longitude, accuracy } = position.coords
+
+    if (typeof accuracyThresholdMeters === "number" && accuracy > accuracyThresholdMeters) {
+      throw createError(
+        "No se pudo obtener una ubicación precisa. Intenta nuevamente en un área con mejor señal.",
+      )
+    }
+
+    if (saveUserLocation) {
+      await guardarUbicacionUsuario({
+        userLat: latitude,
+        userLng: longitude,
+      })
+    }
+
+    const mapsUrl = buildEventDirectionsUrl({
+      originLat: latitude,
+      originLng: longitude,
+    })
+
+    window.open(mapsUrl, "_blank", "noopener,noreferrer")
+
+    return createResult({
+      opened: true,
+      usedFallback: false,
+      errorMessage: null,
+    })
+  } catch (error) {
+    return handleRouteError(error, options)
+  }
 }
