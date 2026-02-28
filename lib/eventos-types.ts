@@ -11,6 +11,7 @@ export type EventoItem = {
 
 export type EventoDbRow = {
   id?: string | number
+  fecha_evento?: string
   fecha?: string
   date?: string
   dia?: string
