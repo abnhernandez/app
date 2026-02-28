@@ -73,14 +73,14 @@ export function Footer() {
           </div>
 
             <p className="flex flex-col items-center gap-1">
-              <span className="flex items-center gap-2">
+              {/* <span className="flex items-center gap-2">
                 Desarrollado con 
                 <span className="animate-pulse heart-beat text-red-500">❤️</span>
                 y dedicación para la gloria de Dios
-              </span>
+              </span> */}
 
               <span className="text-base italic font-semibold text-foreground">
-                A Él sea la gloria
+                A Dios sea la gloria
               </span>
 
               <span className="text-muted-foreground">
