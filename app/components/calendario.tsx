@@ -81,7 +81,7 @@ export default function CalendarioSemanal({
   const grupos = useMemo(() => groupByDay(visibles), [visibles]);
 
   return (
-    <section className="w-full px-4 py-6 bg-background text-foreground">
+    <section className="w-full px-4 py-6">
       {/* Header */}
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-foreground">

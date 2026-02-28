@@ -12,15 +12,15 @@ export default async function EventosPage() {
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Eventos</h1>
           <Link
-            href="/"
+            href="/eventos/7742347"
             aria-label="Ir al inicio"
-            className="inline-flex items-center gap-2 text-sm text-amber-600"
+            className="inline-flex items-center gap-2 text-sm"
           >
             <Home className="h-4 w-4" /> Inicio
           </Link>
         </header>
 
-        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-6">
+        <section className="rounded-2xl p-4 sm:p-6">
           <Calendario eventos={eventos} />
         </section>
       </div>
