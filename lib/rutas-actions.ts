@@ -2,6 +2,7 @@
 
 import { createServerClient, type SetAllCookies } from "@supabase/ssr"
 import { cookies } from "next/headers"
+
 type CookiePayload = Parameters<SetAllCookies>[0][number]
 
 export async function guardarUbicacionUsuario({
@@ -19,8 +20,8 @@ export async function guardarUbicacionUsuario({
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookies: CookiePayload[]) => {
-          cookies.forEach(({ name, value, options }) =>
+        setAll: (cookiesToSet: CookiePayload[]) => {
+          cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options)
           )
         },
@@ -28,16 +29,12 @@ export async function guardarUbicacionUsuario({
     }
   )
 
-  // 🔐 Validar usuario autenticado
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) throw new Error("No autorizado")
-
-  // 💾 Guardar SOLO ubicación
   const { error } = await supabase.from("rutas_iglesia").insert({
-    user_id: user.id,
+    user_id: user?.id ?? null,
     origen_lat: userLat,
     origen_lng: userLng,
   })
