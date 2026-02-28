@@ -1,4 +1,3 @@
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRound } from "lucide-react";
@@ -30,6 +29,13 @@ const badgeVariants: Record<TagVariant, string> = {
   warning: "bg-[#213c2d] text-[#f0c953]",
   primary: "bg-[#213c2d] text-[#f0c953]",
   default: "bg-[#213c2d] text-[#f0c953]",
+};
+
+const formatTime = (time: string): string => {
+  const [hours, minutes] = time.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
 export default function Evento({
@@ -104,7 +110,7 @@ export default function Evento({
           </div>
 
           <span className="text-muted-foreground text-sm font-semibold">
-            {startTime} – {endTime}
+            {formatTime(startTime)} – {formatTime(endTime)}
           </span>
         </div>
 

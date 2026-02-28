@@ -4,12 +4,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import Evento from "./evento";
 import type { EventoItem } from "@/lib/eventos-types";
 
-/* =======================
-   Utilidades
-======================= */
-
 const monthFormatter = new Intl.DateTimeFormat("es-ES", {
   month: "short",
+  timeZone: "UTC",
 });
 
 const monthYearFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -17,18 +14,67 @@ const monthYearFormatter = new Intl.DateTimeFormat("es-ES", {
   year: "numeric",
 });
 
-const isPastEvent = (e: EventoItem, now: Date) => {
-  if (!e.endTime) return false;
-  const end = new Date(e.fecha);
-  const [h, m] = e.endTime.split(":").map(Number);
-  end.setHours(h, m, 0, 0);
-  return end < now;
-};
-
 const getDateKey = (fecha: string) => {
   if (!fecha) return "";
-  if (fecha.length >= 10) return fecha.slice(0, 10);
-  return new Date(fecha).toISOString().slice(0, 10);
+
+  const parsed = new Date(fecha);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(parsed);
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) return "";
+  return `${year}-${month}-${day}`;
+};
+
+const getTimeKey = (time: string) => {
+  const match = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return "";
+
+  const [, hourRaw, minuteRaw] = match;
+  const hour = Number(hourRaw);
+  const minute = Number(minuteRaw);
+
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return "";
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
+const isPastEvent = (e: EventoItem, now: Date) => {
+  if (!e.endTime) return false;
+
+  const eventDateKey = getDateKey(e.fecha);
+  if (!eventDateKey) return false;
+
+  const nowDateKey = getDateKey(now.toISOString());
+  if (!nowDateKey) return false;
+
+  if (eventDateKey < nowDateKey) return true;
+  if (eventDateKey > nowDateKey) return false;
+
+  const endTimeKey = getTimeKey(e.endTime);
+  if (!endTimeKey) return false;
+
+  const nowMxParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Mexico_City",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+
+  const nowHour = nowMxParts.find((part) => part.type === "hour")?.value;
+  const nowMinute = nowMxParts.find((part) => part.type === "minute")?.value;
+  if (!nowHour || !nowMinute) return false;
+
+  const nowTimeKey = `${nowHour}:${nowMinute}`;
+  return endTimeKey < nowTimeKey;
 };
 
 const groupByDay = (events: EventoItem[]) => {
@@ -45,10 +91,6 @@ const groupByDay = (events: EventoItem[]) => {
     .map(([day, list]) => ({ day, list }));
 };
 
-/* =======================
-   Componente
-======================= */
-
 type Props = {
   eventos?: EventoItem[];
   titulo?: string;
@@ -64,7 +106,6 @@ export default function CalendarioSemanal({
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(new Date());
   }, []);
 
@@ -82,11 +123,8 @@ export default function CalendarioSemanal({
 
   return (
     <section className="w-full px-4 py-6">
-      {/* Header */}
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">
-          {titulo}
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground">{titulo}</h1>
 
         <p className="text-muted-foreground capitalize">
           {now ? monthYearFormatter.format(now) : "—"}
@@ -100,18 +138,16 @@ export default function CalendarioSemanal({
         </nav>
       </header>
 
-      {/* Eventos */}
       <div className="flex flex-col gap-4">
         {grupos.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No hay eventos para mostrar.
-          </p>
+          <p className="text-sm text-muted-foreground">No hay eventos para mostrar.</p>
         )}
 
         {grupos.map(({ day, list }) => {
-          const date = new Date(`${day}T00:00:00`);
+          const [year, monthIndex, dayIndex] = day.split("-").map(Number);
+          const date = new Date(Date.UTC(year, monthIndex - 1, dayIndex, 12, 0, 0));
           const month = monthFormatter.format(date).toUpperCase();
-          const dayNum = date.getDate().toString();
+          const dayNum = dayIndex.toString();
 
           return (
             <div key={day} className="flex flex-col gap-4">
@@ -133,7 +169,6 @@ export default function CalendarioSemanal({
         })}
       </div>
 
-      {/* Footer */}
       <footer className="mt-6">
         <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
           <input
