@@ -72,3 +72,14 @@ body::before {
   opacity: 0.015;
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.15); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.15); }
+}
+
+.heart-beat {
+  animation: heartbeat 1.5s infinite;
+}

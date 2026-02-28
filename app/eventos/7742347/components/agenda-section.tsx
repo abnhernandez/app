@@ -78,7 +78,9 @@ export default async function AgendaPage() {
   const eventDate = formatDate(events[0].start_time)
 
   return (
-    <section className="py-24">
+    <section
+    id="agenda" 
+    className="py-24">
       <div className="mx-auto max-w-6xl px-6">
 
         {/* HEADER */}

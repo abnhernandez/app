@@ -1,84 +1,102 @@
 "use client"
 
-import { MapPin, CalendarDays } from "lucide-react"
+import { useEffect, useState } from "react"
+import { createClient } from "@supabase/supabase-js"
+import { Youtube, Facebook, Instagram, Music2 } from "lucide-react"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export function Footer() {
+  const [verse, setVerse] = useState<{ texto: string; referencia: string } | null>(null)
+
+  useEffect(() => {
+    async function fetchVerse() {
+      const { data, error } = await supabase
+        .from("versiculos")
+        .select("*")
+
+      if (data && data.length > 0) {
+        const random = data[Math.floor(Math.random() * data.length)]
+        setVerse(random)
+      }
+    }
+
+    fetchVerse()
+  }, [])
+
   return (
-    <footer className="bg-muted/30 border-t border-border py-16">
+    <footer className="bg-muted/30 border-t border-border py-14">
       <div className="mx-auto max-w-6xl px-6">
 
-        {/* Top Section */}
-        <div className="grid gap-12 md:grid-cols-3 md:items-start">
-
-          {/* Brand / Event */}
-          <div>
-            <p className="text-xs tracking-[0.3em] uppercase text-primary font-semibold mb-4">
-              Evento Juvenil 2026
-            </p>
-
-            <h3 className="font-serif text-2xl font-semibold text-foreground leading-snug">
-              Las decisiones más importantes de tu vida
-            </h3>
-
-            <p className="mt-4 text-sm text-muted-foreground">
-              Un tiempo diseñado para reflexionar, conectar y tomar decisiones que marcarán tu futuro.
-            </p>
-          </div>
-
-          {/* Event Info */}
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-              Información
-            </h4>
-
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2 text-foreground">
-                <CalendarDays className="size-4 text-primary" />
-                28 de Febrero · 6:00 PM
-              </div>
-
-              <div className="flex items-start gap-2 text-foreground">
-                <MapPin className="size-4 text-primary mt-0.5" />
-                <span>
-                  Iglesia Cristiana Monte Sion <br />
-                  Oaxaca de Juárez, Oaxaca
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-              Ubicación
-            </h4>
-
-            <a
-              href="https://maps.app.goo.gl/dpToTNDtef24EMhF6"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-300 hover:scale-[1.04] hover:shadow-lg"
-            >
-              <MapPin className="size-4" />
-              Ver en Google Maps
-            </a>
-          </div>
+        {/* Verse dinámico */}
+        <div className="text-center max-w-2xl mx-auto">
+          {verse ? (
+            <>
+              <p className="font-serif text-lg text-foreground leading-relaxed">
+                “{verse.texto}”
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {verse.referencia}
+              </p>
+            </>
+          ) : (
+            <p className="text-muted-foreground text-sm">Cargando versículo...</p>
+          )}
         </div>
 
-        {/* Divider */}
         <div className="my-10 h-px w-full bg-border" />
 
-        {/* Bottom */}
-        <div className="flex flex-col items-center justify-between gap-4 text-xs text-muted-foreground md:flex-row">
-          <p>
-            © {new Date().getFullYear()} Iglesia Cristiana Monte Sion. Todos los derechos reservados.
-          </p>
+        <div className="flex flex-col items-center gap-6 text-center">
 
-          <p className="tracking-wide">
-            Diseñado para la comunidad juvenil
-          </p>
+          {/* Nombre Iglesia */}
+          <h3 className="font-serif text-xl font-semibold text-foreground">
+            Iglesia Cristiana Monte Sion
+          </h3>
+
+          {/* Redes */}
+          <div className="flex items-center gap-6">
+            <a href="https://youtube.com/@montesiooaxaca" target="_blank" className="text-muted-foreground hover:text-primary transition">
+              <Youtube className="size-5" />
+            </a>
+            <a href="https://facebook.com/montesionoax" target="_blank" className="text-muted-foreground hover:text-primary transition">
+              <Facebook className="size-5" />
+            </a>
+            <a href="https://instagram.com/montesionoaxaca" target="_blank" className="text-muted-foreground hover:text-primary transition">
+              <Instagram className="size-5" />
+            </a>
+            <a href="https://tiktok.com/@montesionoaxaca" target="_blank" className="text-muted-foreground hover:text-primary transition">
+              <Music2 className="size-5" />
+            </a>
+          </div>
+
+            <p className="flex flex-col items-center gap-1">
+              <span className="flex items-center gap-2">
+                Desarrollado con 
+                <span className="animate-pulse heart-beat text-red-500">❤️</span>
+                y dedicación para la gloria de Dios
+              </span>
+
+              <span className="text-base italic font-semibold text-foreground">
+                A Él sea la gloria
+              </span>
+
+              <span className="text-muted-foreground">
+                — Romanos 11:36
+              </span>
+            </p>
+          
+          {/* Firma mejorada */}
+          <div className="text-xs text-muted-foreground space-y-2">
+            <p>
+              © {new Date().getFullYear()} Iglesia Cristiana Monte Sion.
+              Todos los derechos reservados.
+            </p>
+          </div>
+
         </div>
-
       </div>
     </footer>
   )
