@@ -58,7 +58,7 @@ export function Footer() {
 
           {/* Redes */}
           <div className="flex items-center gap-6">
-            <a href="https://youtube.com/@montesiooaxaca" target="_blank" className="text-muted-foreground hover:text-primary transition">
+            <a href="https://youtube.com/@montesionoaxaca" target="_blank" className="text-muted-foreground hover:text-primary transition">
               <Youtube className="size-5" />
             </a>
             <a href="https://facebook.com/montesionoax" target="_blank" className="text-muted-foreground hover:text-primary transition">
