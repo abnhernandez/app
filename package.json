@@ -31,7 +31,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=true BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true next build",
+    "build": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=1 next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
