@@ -2,6 +2,7 @@
 
 import { createServerClient, type SetAllCookies } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { normalizarCoordenadas } from "@/lib/coordenadas"
 
 type CookiePayload = Parameters<SetAllCookies>[0][number]
 
@@ -12,6 +13,11 @@ export async function guardarUbicacionUsuario({
   userLat: number
   userLng: number
 }) {
+  const coords = normalizarCoordenadas({
+    lat: userLat,
+    lng: userLng,
+  })
+
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -35,8 +41,8 @@ export async function guardarUbicacionUsuario({
 
   const { error } = await supabase.from("rutas_iglesia").insert({
     user_id: user?.id ?? null,
-    origen_lat: userLat,
-    origen_lng: userLng,
+    origen_lat: coords.lat,
+    origen_lng: coords.lng,
   })
 
   if (error) {
