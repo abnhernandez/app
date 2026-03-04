@@ -1,4 +1,4 @@
-import IglesiaCercanaComponent from '@/app/components/iglesia_cercana'
+import IglesiaCercanaComponent from '@/app/components/IglesiaCercana'
 
 export default function HomePage() {
 
