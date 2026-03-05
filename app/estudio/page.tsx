@@ -1,73 +1,79 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react"
 
-const START_DATE = new Date("2026-01-28T00:00:00");
-const TOTAL_CHAPTERS = 28;
-const CHAPTERS_PER_DAY = 2;
+const START_DATE = new Date("2026-03-03T00:00:00")
+
+const TOTAL_CHAPTERS = 24
+
 const CHAPTER_URL = (chapter: number) =>
-  `https://www.bible.com/es/bible/149/ACT.${chapter}.RVR1960`;
+  `https://www.bible.com/es/bible/149/LUK.${chapter}.RVR1960`
 
 const getDaysSinceStart = (today: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
+  const msPerDay = 1000 * 60 * 60 * 24
+
   const startUtc = Date.UTC(
     START_DATE.getFullYear(),
     START_DATE.getMonth(),
     START_DATE.getDate()
-  );
-  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-  const diff = Math.floor((todayUtc - startUtc) / msPerDay);
+  )
 
-  return Math.max(0, diff);
-};
+  const todayUtc = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  )
 
-const getDailyChapters = (today: Date) => {
-  const dayIndex = getDaysSinceStart(today);
-  const startChapter = dayIndex * CHAPTERS_PER_DAY + 1;
-
-  if (startChapter > TOTAL_CHAPTERS) {
-    return [TOTAL_CHAPTERS];
-  }
-
-  const chapters = [startChapter];
-  const nextChapter = startChapter + 1;
-
-  if (nextChapter <= TOTAL_CHAPTERS) {
-    chapters.push(nextChapter);
-  }
-
-  return chapters;
-};
+  return Math.max(0, Math.floor((todayUtc - startUtc) / msPerDay))
+}
 
 export default function Home() {
-  const today = useMemo(() => new Date(), []);
-  const chapters = useMemo(() => getDailyChapters(today), [today]);
-  const primaryChapter = chapters[0] ?? 1;
-  const redirectUrl = useMemo(() => CHAPTER_URL(primaryChapter), [primaryChapter]);
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
 
-    if (typeof document !== "undefined") {
-      document.cookie
-        .split(";")
-        .map((cookie) => cookie.split("=")[0]?.trim())
-        .filter(Boolean)
-        .forEach((name) => {
-          document.cookie = `${name}=; Max-Age=0; path=/;`;
-        });
-    }
+  const today = useMemo(() => new Date(), [])
 
-    try {
-      window.localStorage.clear();
-      window.sessionStorage.clear();
-    } catch {
-      // ignore storage access errors
-    }
+  const dayIndex = getDaysSinceStart(today)
 
-    window.location.replace(redirectUrl);
-  }, [redirectUrl]);
+  const chapter = Math.min(dayIndex + 1, TOTAL_CHAPTERS)
 
-  return null;
+  const progress = chapter
+
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center text-center p-8">
+
+      <h1 className="text-4xl font-bold mb-2">
+        Evangelio de Lucas
+      </h1>
+
+      <p className="text-lg mb-6">
+        Plan de lectura diario
+      </p>
+
+      <div className="text-2xl font-semibold mb-4">
+        Hoy toca leer
+      </div>
+
+      <div className="text-3xl mb-6">
+        Lucas {chapter}
+      </div>
+
+      <a
+        href={CHAPTER_URL(chapter)}
+        target="_blank"
+        className="px-6 py-3 bg-black text-white rounded-xl"
+      >
+        Leer capítulo
+      </a>
+
+      <div className="mt-10">
+        <p>
+          Día {chapter} de {TOTAL_CHAPTERS}
+        </p>
+
+        <p>
+          Progreso: {progress}/{TOTAL_CHAPTERS}
+        </p>
+      </div>
+
+    </main>
+  )
 }
