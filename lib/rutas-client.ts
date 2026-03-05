@@ -1,4 +1,5 @@
 import { guardarUbicacionUsuario } from "@/lib/rutas-actions"
+import { getPositionFromWatch } from "@/lib/geolocation-client"
 
 export const CHURCH_COORDS = {
   lat: 17.077605,
@@ -26,16 +27,6 @@ function buildEventDirectionsUrl({
   departureUnixSeconds?: number
 }) {
   return `https://www.google.com/maps/dir/${originLat},${originLng}/${CHURCH_COORDS.lat},${CHURCH_COORDS.lng}/@${ROUTE_MAPS_VIEW.lat},${ROUTE_MAPS_VIEW.lng},${ROUTE_MAPS_VIEW.zoom}z/data=!3m1!4b1!4m6!4m5!2m3!6e0!7e2!8j${departureUnixSeconds}!3e0?${DEFAULT_ROUTE_QUERY_SUFFIX}`
-}
-
-function getCurrentPosition(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0,
-    })
-  })
 }
 
 export type OpenRouteToChurchOptions = {
@@ -108,7 +99,13 @@ export async function openRouteToChurch(
       throw createError("Tu navegador no soporta geolocalización")
     }
 
-    const position = await getCurrentPosition()
+    const position = await getPositionFromWatch({
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0,
+      requiredAccuracyMeters:
+        typeof accuracyThresholdMeters === "number" ? accuracyThresholdMeters : undefined,
+    })
     const { latitude, longitude, accuracy } = position.coords
 
     if (typeof accuracyThresholdMeters === "number" && accuracy > accuracyThresholdMeters) {

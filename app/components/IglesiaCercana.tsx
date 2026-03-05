@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { obtenerIglesiaMasCercana, IglesiaCercana } from '@/lib/iglesias-actions'
+import { getPositionFromWatch } from '@/lib/geolocation-client'
 
 function parseGeolocationError(error: unknown) {
   if (!(error instanceof GeolocationPositionError)) {
@@ -59,12 +60,10 @@ export default function IglesiaCercanaComponent() {
     setError(null)
 
     try {
-      const posicion = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        })
+      const posicion = await getPositionFromWatch({
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
       })
 
       const { latitude, longitude } = posicion.coords
